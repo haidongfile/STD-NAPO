@@ -3,30 +3,54 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ระบบบันทึกการส่งงาน</title>
+<title>ระบบบันทึกการเรียน</title>
 <link href="https://fonts.googleapis.com/css2?family=Itim&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <style>
-:root{--pink:#FFB7C5;--pink-light:#FFE4EC;--pink-dark:#FF8FAB;--purple:#C9B8FF;--purple-light:#EDE8FF;--green:#A8E6C3;--green-dark:#4CAF85;--green-btn:#69C99B;--red:#FFB3B3;--red-dark:#E06B6B;--yellow:#FFE8A3;--yellow-dark:#F5C842;--bg:#FFF5F8;--card:#FFFFFF;--text:#5C4A5A;--text-light:#9B8A98;--border:#F0D9E8;--shadow:0 4px 20px rgba(200,150,180,0.15);--radius:18px;--radius-sm:10px}
+:root{--pink:#FFB7C5;--pink-light:#FFE4EC;--pink-dark:#FF8FAB;--purple:#C9B8FF;--purple-light:#EDE8FF;--green:#A8E6C3;--green-dark:#4CAF85;--green-btn:#69C99B;--red:#FFB3B3;--red-dark:#E06B6B;--yellow:#FFE8A3;--yellow-dark:#F5C842;--blue:#A8D8FF;--blue-dark:#4A90D9;--bg:#FFF5F8;--card:#FFFFFF;--text:#5C4A5A;--text-light:#9B8A98;--border:#F0D9E8;--shadow:0 4px 20px rgba(200,150,180,0.15);--radius:18px;--radius-sm:10px}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Itim',cursive;background:var(--bg);color:var(--text);min-height:100vh}
-.header{background:linear-gradient(135deg,#FFB7C5 0%,#C9B8FF 50%,#A8D8FF 100%);padding:18px 20px 0;text-align:center;position:sticky;top:0;z-index:100;box-shadow:0 4px 20px rgba(200,150,180,0.3)}
-.header h1{font-size:1.6rem;color:#fff;text-shadow:0 2px 8px rgba(150,100,130,0.3);margin-bottom:4px}
-.nav{display:flex;justify-content:center;gap:8px;padding:10px 0 0;flex-wrap:wrap}
-.nav a{background:rgba(255,255,255,0.7);color:var(--text);padding:7px 16px;border-radius:30px 30px 0 0;text-decoration:none;font-size:0.92rem;transition:all 0.2s}
-.nav a:hover{background:rgba(255,255,255,0.95);transform:translateY(-2px)}
-.section{max-width:960px;margin:0 auto;padding:30px 16px}
-.section-title{display:flex;align-items:center;gap:10px;font-size:1.4rem;margin-bottom:22px;padding-bottom:12px;border-bottom:3px dotted var(--pink)}
-.card{background:var(--card);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow);border:2px solid var(--border);margin-bottom:18px}
-.selector-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px}
-.btn-grade,.btn-subject{background:var(--purple-light);border:2px solid var(--purple);color:var(--text);padding:8px 20px;border-radius:30px;cursor:pointer;font-family:'Itim',cursive;font-size:0.95rem;transition:all 0.2s}
+
+/* HEADER */
+.header{background:linear-gradient(135deg,#FFB7C5 0%,#C9B8FF 50%,#A8D8FF 100%);padding:16px 20px 0;text-align:center;position:sticky;top:0;z-index:100;box-shadow:0 4px 20px rgba(200,150,180,0.3)}
+.header h1{font-size:1.5rem;color:#fff;text-shadow:0 2px 8px rgba(150,100,130,0.3);margin-bottom:8px}
+.nav{display:flex;justify-content:center;gap:6px;padding:8px 0 0;flex-wrap:wrap}
+.nav a{background:rgba(255,255,255,0.7);color:var(--text);padding:6px 14px;border-radius:30px 30px 0 0;text-decoration:none;font-size:0.88rem;transition:all 0.2s}
+.nav a:hover,.nav a.active-nav{background:rgba(255,255,255,0.95);transform:translateY(-2px)}
+
+/* MODE SWITCHER */
+.mode-switch{display:flex;gap:14px;justify-content:center;padding:28px 16px 8px;flex-wrap:wrap}
+.mode-card{background:var(--card);border:3px solid var(--border);border-radius:var(--radius);padding:24px 32px;cursor:pointer;transition:all 0.25s;text-align:center;min-width:160px;box-shadow:var(--shadow)}
+.mode-card:hover{transform:translateY(-4px);box-shadow:0 8px 28px rgba(200,150,180,0.25)}
+.mode-card.active-mode{border-color:var(--pink-dark);background:var(--pink-light)}
+.mode-card.attend-active{border-color:var(--blue-dark);background:var(--blue-light, #E0F2FF)}
+.mode-card .mode-icon{font-size:2.2rem;margin-bottom:8px}
+.mode-card .mode-label{font-size:1rem;color:var(--text)}
+
+/* APP PANELS */
+.app-panel{display:none}.app-panel.show{display:block}
+
+/* SECTIONS */
+.section{max-width:980px;margin:0 auto;padding:24px 16px}
+.section-title{display:flex;align-items:center;gap:10px;font-size:1.35rem;margin-bottom:20px;padding-bottom:10px;border-bottom:3px dotted var(--pink)}
+.section-title.attend-title{border-color:var(--blue)}
+.card{background:var(--card);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);border:2px solid var(--border);margin-bottom:16px}
+
+/* SELECTORS */
+.selector-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.btn-grade,.btn-subject{background:var(--purple-light);border:2px solid var(--purple);color:var(--text);padding:7px 18px;border-radius:30px;cursor:pointer;font-family:'Itim',cursive;font-size:0.92rem;transition:all 0.2s}
 .btn-grade:hover,.btn-subject:hover{background:var(--purple)}
 .btn-grade.active,.btn-subject.active{background:linear-gradient(135deg,var(--pink-dark),var(--purple));color:#fff;border-color:transparent;box-shadow:0 4px 12px rgba(200,150,200,0.4)}
+select.styled-select{border:2px solid var(--border);border-radius:var(--radius-sm);padding:9px 16px;font-family:'Itim',cursive;font-size:0.95rem;background:var(--pink-light);color:var(--text);outline:none;cursor:pointer}
+
+/* FORM */
 .form-group{margin-bottom:14px}
 .form-group label{display:block;font-size:0.9rem;color:var(--text-light);margin-bottom:6px}
-.form-group input,.form-group textarea{width:100%;border:2px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;font-family:'Itim',cursive;font-size:1rem;color:var(--text);background:var(--pink-light);outline:none;transition:border-color 0.2s}
-.form-group input:focus,.form-group textarea:focus{border-color:var(--pink-dark)}
+.form-group input{width:100%;border:2px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;font-family:'Itim',cursive;font-size:1rem;color:var(--text);background:var(--pink-light);outline:none;transition:border-color 0.2s}
+.form-group input:focus{border-color:var(--pink-dark)}
+
+/* CALENDAR */
 .calendar-wrap{position:relative;display:inline-block}
 .calendar-input{display:flex;align-items:center;gap:8px;background:var(--yellow);border:2px solid var(--yellow-dark);border-radius:var(--radius-sm);padding:8px 14px;cursor:pointer;font-family:'Itim',cursive;font-size:0.95rem;color:var(--text);min-width:200px;user-select:none}
 .calendar-popup{position:absolute;top:calc(100% + 8px);left:0;background:#fff;border:2px solid var(--pink);border-radius:var(--radius);padding:16px;box-shadow:0 8px 30px rgba(200,150,180,0.3);z-index:200;width:280px;display:none}
@@ -42,41 +66,103 @@ body{font-family:'Itim',cursive;background:var(--bg);color:var(--text);min-heigh
 .cal-day.selected{background:var(--pink-dark);color:#fff}
 .cal-day.today{font-weight:bold;color:var(--pink-dark)}
 .cal-day.empty{cursor:default}
+
+/* BULK BUTTONS */
 .bulk-btns{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
-.btn-bulk{padding:7px 16px;border-radius:30px;border:none;cursor:pointer;font-family:'Itim',cursive;font-size:0.88rem;transition:all 0.2s}
-.btn-bulk.all-submit{background:var(--green);color:#2a6e4a}
-.btn-bulk.all-not{background:var(--red);color:#8b2020}
-.btn-bulk.all-clear{background:var(--yellow);color:#7a6200}
+.btn-bulk{padding:7px 14px;border-radius:30px;border:none;cursor:pointer;font-family:'Itim',cursive;font-size:0.85rem;transition:all 0.2s}
+.btn-bulk.all-submit,.btn-bulk.all-come{background:var(--green);color:#2a6e4a}
+.btn-bulk.all-not,.btn-bulk.all-absent{background:var(--red);color:#8b2020}
+.btn-bulk.all-clear{background:#eee;color:#777}
+.btn-bulk.all-leave{background:var(--yellow);color:#7a6200}
 .btn-bulk:hover{transform:scale(1.04)}
-.student-row{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:var(--radius-sm);margin-bottom:6px;background:var(--pink-light);transition:background 0.15s}
+
+/* STUDENT ROW */
+.student-row{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:var(--radius-sm);margin-bottom:6px;background:var(--pink-light);transition:background 0.15s;flex-wrap:wrap}
 .student-row:hover{background:#ffd6e6}
 .student-name{flex:1;font-size:0.95rem}
 .status-num{font-size:0.8rem;color:var(--text-light);min-width:24px}
-.btn-submit-s,.btn-notsubmit-s,.btn-clear-s{border:2px solid transparent;border-radius:20px;padding:6px 14px;cursor:pointer;font-family:'Itim',cursive;font-size:0.85rem;transition:all 0.2s;opacity:0.3}
+
+/* STATUS BUTTONS (submit) */
+.btn-submit-s,.btn-notsubmit-s,.btn-clear-s{border:2px solid transparent;border-radius:20px;padding:6px 12px;cursor:pointer;font-family:'Itim',cursive;font-size:0.82rem;transition:all 0.2s;opacity:0.3}
 .btn-submit-s{background:var(--green-btn);color:#fff;border-color:var(--green-btn)}
 .btn-submit-s:hover{opacity:0.65}
-.btn-submit-s.active{opacity:1;background:var(--green-dark);border-color:var(--green-dark);box-shadow:0 0 0 3px #69C99B55,0 3px 10px rgba(76,175,133,0.4);transform:scale(1.06)}
+.btn-submit-s.active{opacity:1;background:var(--green-dark);border-color:var(--green-dark);box-shadow:0 0 0 3px #69C99B55;transform:scale(1.05)}
 .btn-notsubmit-s{background:var(--red-dark);color:#fff;border-color:var(--red-dark)}
 .btn-notsubmit-s:hover{opacity:0.65}
-.btn-notsubmit-s.active{opacity:1;background:#c05050;border-color:#c05050;box-shadow:0 0 0 3px #E06B6B55,0 3px 10px rgba(224,107,107,0.4);transform:scale(1.06)}
+.btn-notsubmit-s.active{opacity:1;background:#c05050;border-color:#c05050;box-shadow:0 0 0 3px #E06B6B55;transform:scale(1.05)}
 .btn-clear-s{background:#e8e0ec;color:#b0a0b8;border-color:#ddd;opacity:0.5}
 .btn-clear-s:hover{opacity:0.9;background:#d8cce4}
-.btn-save{background:linear-gradient(135deg,var(--pink-dark),var(--purple));color:#fff;border:none;border-radius:30px;padding:12px 34px;font-family:'Itim',cursive;font-size:1.05rem;cursor:pointer;box-shadow:0 4px 14px rgba(200,130,180,0.4);transition:all 0.2s;margin-top:8px}
+
+/* ATTENDANCE BUTTONS */
+.btn-att{border:2px solid transparent;border-radius:20px;padding:6px 12px;cursor:pointer;font-family:'Itim',cursive;font-size:0.82rem;transition:all 0.2s;opacity:0.3}
+.btn-come{background:var(--green-btn);color:#fff;border-color:var(--green-btn)}
+.btn-come:hover{opacity:0.65}
+.btn-come.active{opacity:1;background:var(--green-dark);border-color:var(--green-dark);box-shadow:0 0 0 3px #69C99B55;transform:scale(1.05)}
+.btn-leave{background:var(--yellow-dark);color:#fff;border-color:var(--yellow-dark)}
+.btn-leave:hover{opacity:0.65}
+.btn-leave.active{opacity:1;background:#d4a800;border-color:#d4a800;box-shadow:0 0 0 3px #F5C84255;transform:scale(1.05)}
+.btn-absent{background:var(--red-dark);color:#fff;border-color:var(--red-dark)}
+.btn-absent:hover{opacity:0.65}
+.btn-absent.active{opacity:1;background:#c05050;border-color:#c05050;box-shadow:0 0 0 3px #E06B6B55;transform:scale(1.05)}
+
+/* SAVE BUTTON */
+.btn-save{background:linear-gradient(135deg,var(--pink-dark),var(--purple));color:#fff;border:none;border-radius:30px;padding:11px 30px;font-family:'Itim',cursive;font-size:1rem;cursor:pointer;box-shadow:0 4px 14px rgba(200,130,180,0.4);transition:all 0.2s;margin-top:8px}
 .btn-save:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(200,130,180,0.5)}
+.btn-save.blue-save{background:linear-gradient(135deg,#A8D8FF,#4A90D9)}
+
+/* SUMMARY TABLE */
 .summary-table-wrap{overflow-x:auto;border-radius:var(--radius)}
-.summary-table{width:100%;border-collapse:collapse;font-size:0.88rem}
-.summary-table th{background:linear-gradient(135deg,var(--pink-light),var(--purple-light));padding:10px 12px;text-align:center;border:1px solid var(--border);white-space:nowrap}
+.summary-table{width:100%;border-collapse:separate;border-spacing:0;font-size:0.86rem}
+.summary-table th{background:linear-gradient(135deg,var(--pink-light),var(--purple-light));padding:9px 10px;text-align:center;border-top:1px solid var(--border);border-right:1px solid var(--border);border-bottom:1px solid var(--border);white-space:nowrap}
+.summary-table th:first-child{border-left:1px solid var(--border)}
+.summary-table th.att-th{background:linear-gradient(135deg,#E0F2FF,var(--purple-light))}
 .summary-table th.clickable-header{cursor:pointer;transition:background 0.15s}
 .summary-table th.clickable-header:hover{background:var(--pink)}
-.summary-table td{padding:9px 12px;border:1px solid #f0e0ea;text-align:center;background:#fff}
+.summary-table td{padding:8px 10px;border-right:1px solid #f0e0ea;border-bottom:1px solid #f0e0ea;text-align:center;background:#fff}
+.summary-table tr:first-child td{border-top:1px solid #f0e0ea}
+.summary-table td:first-child{border-left:1px solid #f0e0ea}
 .summary-table tr:nth-child(even) td{background:var(--pink-light)}
 .summary-table td.name-col{text-align:left;white-space:nowrap}
-.icon-submit,.icon-not,.icon-none{display:inline-block;width:18px;height:18px;border-radius:50%;vertical-align:middle}
+/* sticky — ต้องใช้ border-separate จึงจะทำงานได้ */
+.summary-table th.name-th{
+  position:sticky;left:0;z-index:3;
+  background:linear-gradient(135deg,var(--pink-light),var(--purple-light));
+  box-shadow:2px 0 4px rgba(200,150,180,0.2);
+}
+.summary-table td.name-col{
+  position:sticky;left:0;z-index:2;
+  background:#fff;
+  box-shadow:2px 0 4px rgba(200,150,180,0.15);
+}
+.summary-table tr:nth-child(even) td.name-col{background:var(--pink-light)}
+.icon-submit,.icon-not,.icon-none{display:inline-block;width:16px;height:16px;border-radius:50%;vertical-align:middle}
 .icon-submit{background:var(--green-dark);box-shadow:0 2px 6px rgba(76,175,133,0.45)}
 .icon-not{background:var(--red-dark);box-shadow:0 2px 6px rgba(224,107,107,0.45)}
 .icon-none{background:#ddd}
 .td-total,.td-pct,.td-score{font-weight:bold}
-.missing-list{margin-top:20px}
+
+/* ATTEND TABLE ICONS */
+.ic-come{display:inline-block;width:14px;height:14px;border-radius:50%;background:var(--green-dark);vertical-align:middle}
+.ic-leave{display:inline-block;width:14px;height:14px;border-radius:50%;background:#d4a800;vertical-align:middle}
+.ic-absent{display:inline-block;width:14px;height:14px;border-radius:50%;background:var(--red-dark);vertical-align:middle}
+.ic-none{display:inline-block;width:14px;height:14px;border-radius:50%;background:#ddd;vertical-align:middle}
+
+/* MONTH TABS */
+.month-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.month-tab{padding:5px 12px;border-radius:20px;border:2px solid var(--border);background:#fff;cursor:pointer;font-family:'Itim',cursive;font-size:0.82rem;color:var(--text-light);transition:all 0.2s}
+.month-tab:hover{border-color:var(--blue);color:var(--blue-dark)}
+.month-tab.active{background:var(--blue-dark);color:#fff;border-color:var(--blue-dark)}
+.month-tab.has-data{border-color:var(--blue);color:var(--blue-dark);font-weight:bold}
+
+/* TOP ABSENT */
+.top-absent-list{margin-top:16px}
+.top-absent-item{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--pink-light);border-radius:var(--radius-sm);margin-bottom:8px;border:2px solid var(--border)}
+.top-rank{font-size:1.2rem;min-width:30px}
+.top-name{flex:1;font-size:0.95rem}
+.top-count{background:var(--red-dark);color:#fff;border-radius:20px;padding:2px 12px;font-size:0.85rem}
+
+/* MISSING STUDENTS */
+.missing-list{margin-top:18px}
 .missing-item{background:var(--pink-light);border:2px solid var(--pink);border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:10px;cursor:pointer;transition:all 0.2s}
 .missing-item:hover{border-color:var(--pink-dark);background:var(--pink)}
 .missing-header{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
@@ -84,54 +170,81 @@ body{font-family:'Itim',cursive;background:var(--bg);color:var(--text);min-heigh
 .missing-count{background:var(--red-dark);color:#fff;border-radius:20px;padding:2px 12px;font-size:0.85rem}
 .missing-tasks{margin-top:10px;padding-top:10px;border-top:1px dashed var(--pink-dark);display:none;flex-wrap:wrap;gap:8px}
 .missing-tasks.open{display:flex}
-.task-chip{background:#fff;border:2px solid var(--red);border-radius:20px;padding:4px 14px;font-size:0.83rem;cursor:pointer;transition:all 0.15s;color:var(--text)}
+.task-chip{background:#fff;border:2px solid var(--red);border-radius:20px;padding:4px 12px;font-size:0.82rem;cursor:pointer;transition:all 0.15s;color:var(--text)}
 .task-chip:hover{background:var(--red);color:#8b2020}
+
+/* EDIT NAMES */
 .edit-textarea{width:100%;min-height:200px;border:2px solid var(--border);border-radius:var(--radius-sm);padding:14px;font-family:'Itim',cursive;font-size:0.95rem;color:var(--text);background:var(--pink-light);line-height:1.8;resize:vertical;outline:none;transition:border-color 0.2s}
 .edit-textarea:focus{border-color:var(--pink-dark)}
+
+/* MODAL */
 .modal-overlay{position:fixed;inset:0;background:rgba(100,50,80,0.4);backdrop-filter:blur(4px);z-index:500;display:none;visibility:hidden;align-items:center;justify-content:center;padding:12px;overflow-y:auto}
 .modal-overlay.open{display:flex;visibility:visible}
 .modal{background:#fff;border-radius:var(--radius);box-shadow:0 12px 40px rgba(150,80,120,0.3);max-width:500px;width:100%;border:3px solid var(--pink);animation:popIn 0.25s ease;display:flex;flex-direction:column;max-height:calc(100vh - 24px);overflow:hidden}
-.modal-header{padding:20px 22px 14px;border-bottom:2px dashed var(--border);flex-shrink:0}
-.modal-header h3{font-size:1.15rem;margin:0}
-.modal-body{padding:16px 22px;overflow-y:auto;flex:1}
-.modal-footer{padding:14px 22px;border-top:2px dashed var(--border);flex-shrink:0}
+.modal-header{padding:18px 20px 12px;border-bottom:2px dashed var(--border);flex-shrink:0}
+.modal-header h3{font-size:1.1rem;margin:0}
+.modal-body{padding:14px 20px;overflow-y:auto;flex:1}
+.modal-footer{padding:12px 20px;border-top:2px dashed var(--border);flex-shrink:0}
 @keyframes popIn{from{transform:scale(0.85);opacity:0}to{transform:scale(1);opacity:1}}
 .modal-btns{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
-.btn-edit-info{background:var(--yellow);border:2px solid var(--yellow-dark);border-radius:20px;padding:5px 14px;font-family:'Itim',cursive;font-size:0.85rem;cursor:pointer;transition:all 0.15s;color:var(--text);margin-left:8px}
+.btn-edit-info{background:var(--yellow);border:2px solid var(--yellow-dark);border-radius:20px;padding:5px 12px;font-family:'Itim',cursive;font-size:0.85rem;cursor:pointer;transition:all 0.15s;color:var(--text);margin-left:8px}
 .btn-edit-info:hover{background:var(--yellow-dark)}
-.edit-info-form{background:var(--yellow);border:2px solid var(--yellow-dark);border-radius:var(--radius-sm);padding:14px;margin-bottom:14px;display:none}
+.edit-info-form{background:var(--yellow);border:2px solid var(--yellow-dark);border-radius:var(--radius-sm);padding:12px;margin-bottom:12px;display:none}
 .edit-info-form.open{display:block}
 .edit-info-form input{width:100%;border:2px solid var(--yellow-dark);border-radius:8px;padding:8px 12px;font-family:'Itim',cursive;font-size:0.9rem;background:#fffae0;outline:none;margin-top:4px}
 .edit-info-form label{font-size:0.82rem;color:var(--text-light);display:block;margin-bottom:4px;margin-top:8px}
-.btn-modal-cancel{background:#eee;border:none;border-radius:20px;padding:8px 20px;cursor:pointer;font-family:'Itim',cursive}
-.btn-modal-confirm{background:var(--red-dark);color:#fff;border:none;border-radius:20px;padding:8px 20px;cursor:pointer;font-family:'Itim',cursive}
-.btn-modal-save{background:linear-gradient(135deg,var(--green-btn),var(--green-dark));color:#fff;border:none;border-radius:20px;padding:8px 20px;cursor:pointer;font-family:'Itim',cursive}
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(60px);background:linear-gradient(135deg,var(--green-btn),var(--green-dark));color:#fff;padding:12px 28px;border-radius:30px;font-size:1rem;box-shadow:0 6px 20px rgba(80,180,130,0.4);z-index:1000;transition:transform 0.3s ease}
+.btn-modal-cancel{background:#eee;border:none;border-radius:20px;padding:8px 18px;cursor:pointer;font-family:'Itim',cursive}
+.btn-modal-confirm{background:var(--red-dark);color:#fff;border:none;border-radius:20px;padding:8px 18px;cursor:pointer;font-family:'Itim',cursive}
+.btn-modal-save{background:linear-gradient(135deg,var(--green-btn),var(--green-dark));color:#fff;border:none;border-radius:20px;padding:8px 18px;cursor:pointer;font-family:'Itim',cursive}
+.task-detail-card{background:var(--purple-light);border:2px solid var(--purple);border-radius:var(--radius-sm);padding:14px;margin-bottom:16px}
+.task-detail-card p{font-size:0.88rem;margin-bottom:6px}
+.badge{display:inline-block;background:var(--pink);color:var(--text);border-radius:20px;padding:3px 10px;font-size:0.8rem;margin-right:6px}
+.divider{border:none;border-top:2px dashed var(--border);margin:20px 0}
+.empty-msg{text-align:center;color:var(--text-light);padding:22px;font-size:0.95rem}
+
+/* MISC */
+.btn-delete-all{background:var(--red-dark);color:#fff;border:none;border-radius:20px;padding:7px 18px;font-family:'Itim',cursive;font-size:0.88rem;cursor:pointer;opacity:0.85;transition:all 0.2s}
+.btn-delete-all:hover{opacity:1;transform:scale(1.03)}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(60px);background:linear-gradient(135deg,var(--green-btn),var(--green-dark));color:#fff;padding:12px 26px;border-radius:30px;font-size:1rem;box-shadow:0 6px 20px rgba(80,180,130,0.4);z-index:1000;transition:transform 0.3s ease}
 .toast.show{transform:translateX(-50%) translateY(0)}
-.footer{text-align:center;padding:20px;color:var(--text-light);font-size:0.88rem;border-top:2px dotted var(--pink);margin-top:10px}
-.task-detail-card{background:var(--purple-light);border:2px solid var(--purple);border-radius:var(--radius-sm);padding:16px;margin-bottom:18px}
-.task-detail-card p{font-size:0.9rem;margin-bottom:6px}
-.badge{display:inline-block;background:var(--pink);color:var(--text);border-radius:20px;padding:3px 12px;font-size:0.82rem;margin-right:6px}
-.divider{border:none;border-top:2px dashed var(--border);margin:24px 0}
-.empty-msg{text-align:center;color:var(--text-light);padding:24px;font-size:0.95rem}
+.footer{text-align:center;padding:18px;color:var(--text-light);font-size:0.85rem;border-top:2px dotted var(--pink);margin-top:10px}
 #loading-overlay{display:none;position:fixed;inset:0;background:rgba(255,240,248,0.75);backdrop-filter:blur(3px);z-index:900;align-items:center;justify-content:center;flex-direction:column;gap:12px}
 @keyframes spin{to{transform:rotate(360deg)}}
 .spinner{width:48px;height:48px;border:5px solid var(--pink);border-top-color:var(--purple);border-radius:50%;animation:spin 0.8s linear infinite}
-.btn-delete-all{background:var(--red-dark);color:#fff;border:none;border-radius:20px;padding:8px 20px;font-family:'Itim',cursive;font-size:0.9rem;cursor:pointer;opacity:0.85;transition:all 0.2s}
-.btn-delete-all:hover{opacity:1;transform:scale(1.03)}
-@media(max-width:600px){.header h1{font-size:1.2rem}.nav a{font-size:0.82rem;padding:6px 12px}.summary-table{font-size:0.78rem}}
+
+@media(max-width:600px){
+  .header h1{font-size:1.15rem}
+  .nav a{font-size:0.78rem;padding:5px 10px}
+  .summary-table{font-size:0.75rem}
+  .mode-card{padding:18px 20px;min-width:130px}
+  .student-row{flex-wrap:wrap;gap:6px}
+  .student-name{width:100%;flex:none}
+  .status-num{display:none}
+  .btn-submit-s,.btn-notsubmit-s,.btn-clear-s,.btn-att{flex:1;padding:8px 4px;font-size:0.85rem}
+}
 </style>
 </head>
 <body>
 
 <div class="header">
-  <h1>📚 ระบบบันทึกการส่งงาน</h1>
-  <nav class="nav">
-    <a href="#sec-submit">📝 บันทึกการส่งงาน</a>
-    <a href="#sec-summary">📊 สรุปการส่งงาน</a>
-    <a href="#sec-edit">✏️ แก้ไขรายชื่อ</a>
-  </nav>
+  <h1>📚 ระบบบันทึกการเรียน — รร.บ้านนาโพธิ์อ่างสร้างหิน</h1>
+  <nav class="nav" id="main-nav"></nav>
 </div>
+
+<!-- MODE SWITCHER -->
+<div class="mode-switch" id="mode-switch">
+  <div class="mode-card" id="mode-hw" onclick="switchMode('hw')">
+    <div class="mode-icon">📝</div>
+    <div class="mode-label">บันทึกการส่งงาน</div>
+  </div>
+  <div class="mode-card" id="mode-att" onclick="switchMode('att')">
+    <div class="mode-icon">📋</div>
+    <div class="mode-label">เช็กเวลาเรียน</div>
+  </div>
+</div>
+
+<!-- ========== APP: HOMEWORK ========== -->
+<div class="app-panel" id="app-hw">
 
 <div class="section" id="sec-submit">
   <div class="section-title"><span>📝</span> บันทึกการส่งงาน</div>
@@ -178,7 +291,7 @@ body{font-family:'Itim',cursive;background:var(--bg);color:var(--text);min-heigh
   <div class="card">
     <div class="selector-row" id="grade-btns-summary"></div>
     <div class="selector-row" id="subject-btns-summary" style="display:none"></div>
-    <div id="summary-delete-row" style="display:none;margin-bottom:14px;">
+    <div id="summary-delete-row" style="display:none;margin-bottom:12px;">
       <button class="btn-delete-all" id="btn-delete-all-tasks">🗑️ ลบชิ้นงานทั้งหมดในวิชานี้</button>
     </div>
     <div id="summary-content"></div>
@@ -198,26 +311,108 @@ body{font-family:'Itim',cursive;background:var(--bg);color:var(--text);min-heigh
   </div>
 </div>
 
-<div class="footer">🌸 ระบบบันทึกการส่งงาน โรงเรียนบ้านนาโพธิ์อ่างสร้างหิน 2569 🌸</div>
+</div><!-- end app-hw -->
+
+<!-- ========== APP: ATTENDANCE ========== -->
+<div class="app-panel" id="app-att">
+
+<div class="section" id="sec-att-record">
+  <div class="section-title attend-title"><span>📋</span> บันทึกการมาเรียน</div>
+  <div class="card">
+    <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;margin-bottom:16px;">
+      <div class="form-group" style="margin:0">
+        <label>🏫 ระดับชั้น</label>
+        <select class="styled-select" id="att-grade-select">
+          <option value="">-- เลือกชั้น --</option>
+          <option value="4">ป.4</option>
+          <option value="5">ป.5</option>
+          <option value="6">ป.6</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin:0">
+        <label>📅 วันที่</label>
+        <div class="calendar-wrap">
+          <div class="calendar-input" id="att-cal-display">📅 <span id="att-cal-text">เลือกวันที่</span></div>
+          <div class="calendar-popup" id="att-cal-popup">
+            <div class="cal-header">
+              <button class="cal-nav" id="att-cal-prev">◀</button>
+              <span class="cal-month-year" id="att-cal-month-label"></span>
+              <button class="cal-nav" id="att-cal-next">▶</button>
+            </div>
+            <div class="cal-grid" id="att-cal-grid"></div>
+          </div>
+        </div>
+      </div>
+      <div class="form-group" style="margin:0">
+        <label>📚 รายวิชา</label>
+        <select class="styled-select" id="att-subject-select">
+          <option value="">-- เลือกวิชา --</option>
+          <option>ภาษาอังกฤษพื้นฐาน</option>
+          <option>ภาษาอังกฤษเพิ่มเติม</option>
+          <option>สังคมศึกษา</option>
+        </select>
+      </div>
+    </div>
+    <div id="att-record-form" style="display:none">
+      <div class="bulk-btns">
+        <button class="btn-bulk all-come" id="att-bulk-come">✅ มาทั้งหมด</button>
+        <button class="btn-bulk all-leave" id="att-bulk-leave">🟡 ลาทั้งหมด</button>
+        <button class="btn-bulk all-absent" id="att-bulk-absent">❌ ขาดทั้งหมด</button>
+        <button class="btn-bulk all-clear" id="att-bulk-clear">🔄 ไม่เลือกทั้งหมด</button>
+      </div>
+      <div id="att-student-list"></div>
+      <br>
+      <button class="btn-save blue-save" id="btn-save-att">💾 บันทึกการเข้าเรียน</button>
+    </div>
+  </div>
+</div>
+
+<div class="section" id="sec-att-stat">
+  <div class="section-title attend-title"><span>📈</span> สถิติการมาเรียน</div>
+  <div class="card">
+    <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;margin-bottom:16px;">
+      <div class="form-group" style="margin:0">
+        <label>🏫 ระดับชั้น</label>
+        <select class="styled-select" id="stat-grade-select">
+          <option value="">-- เลือกชั้น --</option>
+          <option value="4">ป.4</option>
+          <option value="5">ป.5</option>
+          <option value="6">ป.6</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin:0">
+        <label>📚 รายวิชา</label>
+        <select class="styled-select" id="stat-subject-select">
+          <option value="">-- เลือกวิชา --</option>
+          <option>ภาษาอังกฤษพื้นฐาน</option>
+          <option>ภาษาอังกฤษเพิ่มเติม</option>
+          <option>สังคมศึกษา</option>
+        </select>
+      </div>
+    </div>
+    <div id="att-stat-content"></div>
+  </div>
+</div>
+
+</div><!-- end app-att -->
+
+<div class="footer">🌸 ระบบบันทึกการเรียน โรงเรียนบ้านนาโพธิ์อ่างสร้างหิน 2569 🌸</div>
 
 <!-- MODAL: Task Detail -->
 <div class="modal-overlay" id="modal-task">
   <div class="modal">
     <div class="modal-header"><h3 id="modal-task-title"></h3></div>
     <div class="modal-body">
-      <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:12px;">
+      <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:10px;">
         <div class="task-detail-card" id="modal-task-info" style="flex:1;margin-bottom:0;"></div>
         <button class="btn-edit-info" id="btn-toggle-edit-info">✏️ แก้ไข</button>
       </div>
       <div class="edit-info-form" id="edit-info-form">
-        <label>🏷️ ชื่อชิ้นงาน</label>
-        <input type="text" id="edit-task-name-input">
-        <label>🗒️ หมายเหตุ</label>
-        <input type="text" id="edit-task-note-input">
-        <br><br>
-        <button class="btn-modal-save" id="btn-save-task-info">💾 บันทึกชื่องาน</button>
+        <label>🏷️ ชื่อชิ้นงาน</label><input type="text" id="edit-task-name-input">
+        <label>🗒️ หมายเหตุ</label><input type="text" id="edit-task-note-input">
+        <br><br><button class="btn-modal-save" id="btn-save-task-info">💾 บันทึกชื่องาน</button>
       </div>
-      <p style="font-size:0.88rem;color:var(--text-light);margin-bottom:8px;">สถานะการส่งงาน:</p>
+      <p style="font-size:0.85rem;color:var(--text-light);margin-bottom:8px;">สถานะการส่งงาน:</p>
       <div id="modal-task-students"></div>
     </div>
     <div class="modal-footer">
@@ -250,20 +445,6 @@ body{font-family:'Itim',cursive;background:var(--bg);color:var(--text);min-heigh
   </div>
 </div>
 
-<!-- MODAL: Confirm Delete ALL -->
-<div class="modal-overlay" id="modal-delete-all">
-  <div class="modal">
-    <div class="modal-header"><h3>🗑️ ลบชิ้นงานทั้งหมด</h3></div>
-    <div class="modal-body"><p id="modal-delete-all-msg"></p></div>
-    <div class="modal-footer">
-      <div class="modal-btns">
-        <button class="btn-modal-cancel" id="btn-close-delete-all">ยกเลิก</button>
-        <button class="btn-modal-confirm" id="btn-do-delete-all">ลบทั้งหมดเลย</button>
-      </div>
-    </div>
-  </div>
-</div>
-
 <!-- MODAL: Confirm Delete -->
 <div class="modal-overlay" id="modal-delete">
   <div class="modal">
@@ -278,70 +459,56 @@ body{font-family:'Itim',cursive;background:var(--bg);color:var(--text);min-heigh
   </div>
 </div>
 
-<!-- Loading -->
+<!-- MODAL: Confirm Delete ALL -->
+<div class="modal-overlay" id="modal-delete-all">
+  <div class="modal">
+    <div class="modal-header"><h3>🗑️ ลบชิ้นงานทั้งหมด</h3></div>
+    <div class="modal-body"><p id="modal-delete-all-msg"></p></div>
+    <div class="modal-footer">
+      <div class="modal-btns">
+        <button class="btn-modal-cancel" id="btn-close-delete-all">ยกเลิก</button>
+        <button class="btn-modal-confirm" id="btn-do-delete-all">ลบทั้งหมดเลย</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div id="loading-overlay">
   <div class="spinner"></div>
   <div style="font-family:'Itim',cursive;color:var(--text)">กำลังโหลด...</div>
 </div>
-
 <div class="toast" id="toast"></div>
 
 <script>
 // =====================
-// FIREBASE INIT
+// FIREBASE
 // =====================
-var db = null;
-var useFirebase = false;
-
+var db = null, useFirebase = false;
 try {
   firebase.initializeApp({
-    apiKey: "AIzaSyDQKHFHtZp0Dpxn-Lun_8vVSSckmPKk8T0",
-    authDomain: "student-check-b528b.firebaseapp.com",
-    projectId: "student-check-b528b",
-    storageBucket: "student-check-b528b.firebasestorage.app",
-    messagingSenderId: "583737514275",
-    appId: "1:583737514275:web:63ea1c10484793dbba5496"
+    apiKey:"AIzaSyDQKHFHtZp0Dpxn-Lun_8vVSSckmPKk8T0",
+    authDomain:"student-check-b528b.firebaseapp.com",
+    projectId:"student-check-b528b",
+    storageBucket:"student-check-b528b.firebasestorage.app",
+    messagingSenderId:"583737514275",
+    appId:"1:583737514275:web:63ea1c10484793dbba5496"
   });
   db = firebase.firestore();
   useFirebase = true;
-} catch(e) {
-  console.log('Firebase ไม่พร้อม ใช้ localStorage แทน');
-}
+} catch(e) { console.log('Firebase unavailable, using localStorage'); }
 
-// =====================
-// STORAGE LAYER
-// cache = ข้อมูลใน memory
-// =====================
 var cache = {};
-
-function showLoading(v) {
-  document.getElementById('loading-overlay').style.display = v ? 'flex' : 'none';
-}
+function showLoading(v){ document.getElementById('loading-overlay').style.display = v?'flex':'none'; }
 
 async function dbGet(key) {
-  if (cache[key] !== undefined) return cache[key];
-  if (useFirebase) {
-    try {
-      var snap = await db.collection('data').doc(key).get();
-      var val = snap.exists ? snap.data().value : null;
-      cache[key] = val;
-      return val;
-    } catch(e) { console.error(e); }
-  }
-  try {
-    var raw = localStorage.getItem('hw_' + key);
-    var v = raw ? JSON.parse(raw) : null;
-    cache[key] = v;
-    return v;
-  } catch(e) { return null; }
+  if(cache[key]!==undefined) return cache[key];
+  if(useFirebase){ try{ var s=await db.collection('data').doc(key).get(); var v=s.exists?s.data().value:null; cache[key]=v; return v; }catch(e){} }
+  try{ var r=localStorage.getItem('hw_'+key); var v=r?JSON.parse(r):null; cache[key]=v; return v; }catch(e){ return null; }
 }
-
 async function dbSet(key, value) {
-  cache[key] = value;
-  if (useFirebase) {
-    try { await db.collection('data').doc(key).set({ value: value }); return; } catch(e) { console.error(e); }
-  }
-  try { localStorage.setItem('hw_' + key, JSON.stringify(value)); } catch(e) {}
+  cache[key]=value;
+  if(useFirebase){ try{ await db.collection('data').doc(key).set({value:value}); return; }catch(e){} }
+  try{ localStorage.setItem('hw_'+key, JSON.stringify(value)); }catch(e){}
 }
 
 // =====================
@@ -349,180 +516,214 @@ async function dbSet(key, value) {
 // =====================
 var SUBJECTS = ['ภาษาอังกฤษพื้นฐาน','ภาษาอังกฤษเพิ่มเติม','สังคมศึกษา'];
 var SUBJECT_ICONS = ['🇬🇧','📖','🌏'];
-var GRADE_ICONS = { 4:'🌸', 5:'🌼', 6:'🌺' };
+var GRADE_ICONS = {4:'🌸',5:'🌼',6:'🌺'};
 var DEFAULT_STUDENTS = {
   4:['เด็กชายกิตติชัย ชิดนอก','เด็กชายพาธี หนองแคน','เด็กหญิงกวินตรา จูมมาระ','เด็กหญิงณัฐธิดา คุตนาม','เด็กหญิงประภัสสรา เนระวงค์','เด็กหญิงเพ็ญนภา สายเนตร','เด็กหญิงเมธาพร มลศิลป์','เด็กหญิงลลิลลักษ์ กลางประพันธ์','เด็กหญิงวรรณนิภา ธรรมกุล','เด็กหญิงกันต์กมล คำนนท์','เด็กหญิงสิริณพร นิลเพชร'],
   5:['เด็กชายธนกฤต ไชยศรี','เด็กชายอภิชาติ ยืนยง','เด็กชายปาฏิหารย์ บุตรการ','เด็กชายพชรพล เงาทอง','เด็กชายรัชชานนท์ หลักโสม','เด็กชายศิริวรรธน์ นิยมคุณ','เด็กหญิงกัลยกร ดีดวงพันธ์','เด็กหญิงออมสิน รักบุญ','เด็กหญิงกนกวรรณ ดวงแก้ว','เด็กหญิงณัฎฐนันท์ ชูรัตน์'],
   6:['เด็กชายบุณยวีร์ กาลบุญ','เด็กชายวัชรากร สร้อยสิงห์','เด็กชายจักกฤษณ์ ศรีเมืองช้าง','เด็กชายอรรคพล สินสุพรรณ์','เด็กชายอิทธิพัทธ์ ดันไธสง','เด็กชายวัชรพงษ์ อุทรังษ์','เด็กหญิงนภสร หลักโสม','เด็กหญิงศุจีภรณ์ สุวเพชร','เด็กหญิงอาภาสิริ จันทรังษี','เด็กหญิงณัฐธิดา หนองแคน','เด็กหญิงหฤทัย อ้มสมเสพย์','เด็กหญิงอริสรา อุนาพันธ์','เด็กหญิงสิริวิมล นิลเพชร','เด็กหญิงกัญญาพัชร์ แซ่เตีย','เด็กหญิงกัญญาพัชร หนองแคน']
 };
 
-async function getStudents(grade) { return (await dbGet('students_'+grade)) || DEFAULT_STUDENTS[grade] || []; }
-async function getTasks(grade, subj) { return (await dbGet('tasks_'+grade+'_'+subj)) || []; }
-async function saveTasks(grade, subj, tasks) { await dbSet('tasks_'+grade+'_'+subj, tasks); }
+// ปีการศึกษา: พ.ค.68 – มี.ค.69
+var SCHOOL_MONTHS = [
+  {y:2568,m:4,label:'พ.ค. 68'},{y:2568,m:5,label:'มิ.ย. 68'},{y:2568,m:6,label:'ก.ค. 68'},
+  {y:2568,m:7,label:'ส.ค. 68'},{y:2568,m:8,label:'ก.ย. 68'},{y:2568,m:9,label:'ต.ค. 68'},
+  {y:2568,m:10,label:'พ.ย. 68'},{y:2568,m:11,label:'ธ.ค. 68'},
+  {y:2569,m:0,label:'ม.ค. 69'},{y:2569,m:1,label:'ก.พ. 69'},{y:2569,m:2,label:'มี.ค. 69'}
+];
+
+function getStatusVal(val){ return val && typeof val==='object' ? val.status : val; }
+function getNoteVal(val){ return val && typeof val==='object' ? (val.note||'') : ''; }
+async function getTasks(grade,subj){ return (await dbGet('tasks_'+grade+'_'+subj))||[]; }
+async function saveTasks(grade,subj,tasks){ await dbSet('tasks_'+grade+'_'+subj,tasks); }
+// attendance: key = att_grade_subj_YYYY-MM-DD → {studentName: 'come'|'leave'|'absent'}
+async function getAttDay(grade,subj,dateKey){ return (await dbGet('att_'+grade+'_'+subj+'_'+dateKey))||{}; }
+async function saveAttDay(grade,subj,dateKey,data){ await dbSet('att_'+grade+'_'+subj+'_'+dateKey,data); }
+// รายการวันที่บันทึกทั้งหมดของแต่ละ grade+subj
+async function getAttDates(grade,subj){ return (await dbGet('attdates_'+grade+'_'+subj))||[]; }
+async function saveAttDates(grade,subj,dates){ await dbSet('attdates_'+grade+'_'+subj,dates); }
 
 // =====================
 // STATE
 // =====================
-var state = { submit:{grade:null,subj:null}, summary:{grade:null,subj:null}, edit:{grade:null} };
-var curStatuses = {};
-var editingTaskId = null;
-var deletingTaskId = null;
-var quickData = null;
+var state = {
+  submit:{grade:null,subj:null}, summary:{grade:null,subj:null}, edit:{grade:null}
+};
+var curStatuses={}, editingTaskId=null, deletingTaskId=null, quickData=null;
+var attStatuses={};
 
 // =====================
-// CALENDAR
+// MODE SWITCH
 // =====================
-var THAI_MONTHS = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
-var DAY_NAMES = ['อา','จ','อ','พ','พฤ','ศ','ส'];
-var calDate = { year:0, month:0, day:0 };
+var currentMode = null;
+var HW_NAVS = [
+  {href:'#sec-submit',label:'📝 บันทึกการส่งงาน'},
+  {href:'#sec-summary',label:'📊 สรุปการส่งงาน'},
+  {href:'#sec-edit',label:'✏️ แก้ไขรายชื่อ'}
+];
+var ATT_NAVS = [
+  {href:'#sec-att-record',label:'📋 บันทึกการมาเรียน'},
+  {href:'#sec-att-stat',label:'📈 สถิติการมาเรียน'}
+];
 
-function initCal() {
-  var now = new Date();
-  calDate.year = now.getFullYear()+543;
-  calDate.month = now.getMonth();
-  calDate.day = now.getDate();
-  renderCal();
-  // ตั้งข้อความวันที่หลัง DOM พร้อม
-  var el = document.getElementById('cal-text');
-  if(el) el.textContent = calDate.day+' '+THAI_MONTHS[calDate.month]+' '+calDate.year;
+function switchMode(mode) {
+  currentMode = mode;
+  document.getElementById('app-hw').classList.toggle('show', mode==='hw');
+  document.getElementById('app-att').classList.toggle('show', mode==='att');
+  document.getElementById('mode-hw').classList.toggle('active-mode', mode==='hw');
+  document.getElementById('mode-att').classList.toggle('attend-active', mode==='att');
+  document.getElementById('mode-att').classList.toggle('active-mode', false);
+  document.getElementById('mode-hw').classList.toggle('active-mode', mode==='hw');
+  buildNav(mode==='hw'?HW_NAVS:ATT_NAVS);
+  window.scrollTo({top:0,behavior:'smooth'});
 }
-function toggleCal() { document.getElementById('cal-popup').classList.toggle('open'); }
-function calNav(dir) {
-  calDate.month += dir;
-  if (calDate.month>11){calDate.month=0;calDate.year++;}
-  if (calDate.month<0){calDate.month=11;calDate.year--;}
-  renderCal();
+
+function buildNav(navs) {
+  var nav = document.getElementById('main-nav');
+  nav.innerHTML = '';
+  navs.forEach(function(n){
+    var a=document.createElement('a'); a.href=n.href; a.textContent=n.label;
+    a.addEventListener('click',function(e){
+      e.preventDefault();
+      var el=document.getElementById(n.href.substring(1));
+      if(el){var off=document.querySelector('.header').offsetHeight+12;window.scrollTo({top:el.getBoundingClientRect().top+window.scrollY-off,behavior:'smooth'});}
+    });
+    nav.appendChild(a);
+  });
 }
-function renderCal() {
-  document.getElementById('cal-month-label').textContent = THAI_MONTHS[calDate.month]+' '+calDate.year;
-  var grid = document.getElementById('cal-grid');
-  grid.innerHTML = '';
-  DAY_NAMES.forEach(function(d){ var e=document.createElement('div'); e.className='cal-day-name'; e.textContent=d; grid.appendChild(e); });
-  var gy = calDate.year-543;
-  var first = new Date(gy, calDate.month, 1).getDay();
-  var days = new Date(gy, calDate.month+1, 0).getDate();
-  var today = new Date();
-  for(var i=0;i<first;i++){ var e=document.createElement('div'); e.className='cal-day empty'; grid.appendChild(e); }
+
+// =====================
+// CALENDAR (shared)
+// =====================
+var THAI_MONTHS=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+var DAY_NAMES=['อา','จ','อ','พ','พฤ','ศ','ส'];
+var calDate={year:0,month:0,day:0};
+var attCalDate={year:0,month:0,day:0};
+
+function makeCal(cdObj, labelId, gridId, onSelect) {
+  document.getElementById(labelId).textContent=THAI_MONTHS[cdObj.month]+' '+cdObj.year;
+  var grid=document.getElementById(gridId); grid.innerHTML='';
+  DAY_NAMES.forEach(function(d){var e=document.createElement('div');e.className='cal-day-name';e.textContent=d;grid.appendChild(e);});
+  var gy=cdObj.year-543, first=new Date(gy,cdObj.month,1).getDay(), days=new Date(gy,cdObj.month+1,0).getDate(), today=new Date();
+  for(var i=0;i<first;i++){var e=document.createElement('div');e.className='cal-day empty';grid.appendChild(e);}
   for(var d=1;d<=days;d++){
     var e=document.createElement('div'); e.className='cal-day';
-    if(today.getDate()===d&&today.getMonth()===calDate.month&&today.getFullYear()===gy) e.classList.add('today');
-    if(calDate.day===d) e.classList.add('selected');
+    if(today.getDate()===d&&today.getMonth()===cdObj.month&&today.getFullYear()===gy) e.classList.add('today');
+    if(cdObj.day===d) e.classList.add('selected');
     e.textContent=d;
-    (function(day){ e.addEventListener('click',function(){
-      calDate.day=day;
-      document.getElementById('cal-text').textContent=day+' '+THAI_MONTHS[calDate.month]+' '+calDate.year;
-      document.getElementById('cal-popup').classList.remove('open');
-      renderCal();
-    }); })(d);
+    (function(day){e.addEventListener('click',function(){cdObj.day=day;onSelect(day,cdObj);makeCal(cdObj,labelId,gridId,onSelect);});})(d);
     grid.appendChild(e);
   }
+}
+
+function initCal() {
+  var now=new Date(); calDate.year=now.getFullYear()+543; calDate.month=now.getMonth(); calDate.day=now.getDate();
+  makeCal(calDate,'cal-month-label','cal-grid',function(day,cd){
+    document.getElementById('cal-text').textContent=day+' '+THAI_MONTHS[cd.month]+' '+cd.year;
+    document.getElementById('cal-popup').classList.remove('open');
+  });
+  document.getElementById('cal-text').textContent=calDate.day+' '+THAI_MONTHS[calDate.month]+' '+calDate.year;
+}
+
+function initAttCal() {
+  var now=new Date(); attCalDate.year=now.getFullYear()+543; attCalDate.month=now.getMonth(); attCalDate.day=now.getDate();
+  makeCal(attCalDate,'att-cal-month-label','att-cal-grid',function(day,cd){
+    document.getElementById('att-cal-text').textContent=day+' '+THAI_MONTHS[cd.month]+' '+cd.year;
+    document.getElementById('att-cal-popup').classList.remove('open');
+    checkAttForm();
+  });
+  document.getElementById('att-cal-text').textContent=attCalDate.day+' '+THAI_MONTHS[attCalDate.month]+' '+attCalDate.year;
 }
 
 // =====================
 // UTIL
 // =====================
-function pctColor(pct) {
-  pct = Math.max(0,Math.min(100,pct));
-  var r,g,b;
+function pctColor(pct){
+  pct=Math.max(0,Math.min(100,pct)); var r,g,b;
   if(pct<=50){var t=pct/50;r=Math.round(224+(245-224)*t);g=Math.round(107+(200-107)*t);b=Math.round(107+(66-107)*t);}
   else{var t=(pct-50)/50;r=Math.round(245+(76-245)*t);g=Math.round(200+(175-200)*t);b=Math.round(66+(133-66)*t);}
   return 'rgb('+r+','+g+','+b+')';
 }
 var toastTimer;
-function showToast(msg,bg) {
-  var t=document.getElementById('toast');
-  t.textContent=msg;
+function showToast(msg,bg){
+  var t=document.getElementById('toast'); t.textContent=msg;
   t.style.background=bg||'linear-gradient(135deg,var(--green-btn),var(--green-dark))';
-  t.classList.add('show');
-  clearTimeout(toastTimer);
+  t.classList.add('show'); clearTimeout(toastTimer);
   toastTimer=setTimeout(function(){t.classList.remove('show');},2500);
 }
 function openModal(id){document.getElementById(id).classList.add('open');}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 
+function makeDateKey(cd){ return (cd.year-543)+'-'+String(cd.month+1).padStart(2,'0')+'-'+String(cd.day).padStart(2,'0'); }
+
 // =====================
-// GRADE BUTTONS INIT
+// HW: GRADE BUTTONS
 // =====================
-function buildGradeBtns(section) {
-  var wrap = document.getElementById('grade-btns-'+section);
+function buildGradeBtns(section){
+  var wrap=document.getElementById('grade-btns-'+section);
   [4,5,6].forEach(function(g){
-    var btn=document.createElement('button');
-    btn.className='btn-grade';
+    var btn=document.createElement('button'); btn.className='btn-grade';
     btn.textContent=GRADE_ICONS[g]+' ป.'+g;
-    btn.addEventListener('click',function(){ selectGrade(section,g,btn); });
+    btn.addEventListener('click',function(){selectGrade(section,g,btn);});
     wrap.appendChild(btn);
   });
 }
 
-function selectGrade(section, grade, btn) {
-  state[section].grade = grade;
+function selectGrade(section,grade,btn){
+  state[section].grade=grade;
   document.querySelectorAll('#grade-btns-'+section+' .btn-grade').forEach(function(b){b.classList.remove('active');});
   btn.classList.add('active');
-  if(section==='submit'){
-    state.submit.subj=null;
-    buildSubjectBtns('submit');
-    document.getElementById('submit-form').style.display='none';
-  } else if(section==='summary'){
-    state.summary.subj=null;
-    buildSubjectBtns('summary');
-    document.getElementById('summary-content').innerHTML='';
-  } else if(section==='edit'){
-    renderEdit();
-  }
+  if(section==='submit'){state.submit.subj=null;buildSubjectBtns('submit');document.getElementById('submit-form').style.display='none';}
+  else if(section==='summary'){state.summary.subj=null;buildSubjectBtns('summary');document.getElementById('summary-content').innerHTML='';document.getElementById('summary-delete-row').style.display='none';}
+  else if(section==='edit'){renderEdit();}
 }
 
-function buildSubjectBtns(section) {
-  var wrap=document.getElementById('subject-btns-'+section);
-  wrap.style.display='flex';
-  wrap.innerHTML='';
+function buildSubjectBtns(section){
+  var wrap=document.getElementById('subject-btns-'+section); wrap.style.display='flex'; wrap.innerHTML='';
   SUBJECTS.forEach(function(s,i){
-    var btn=document.createElement('button');
-    btn.className='btn-subject';
-    btn.textContent=SUBJECT_ICONS[i]+' '+s;
+    var btn=document.createElement('button'); btn.className='btn-subject'; btn.textContent=SUBJECT_ICONS[i]+' '+s;
     btn.addEventListener('click',function(){
-      wrap.querySelectorAll('.btn-subject').forEach(function(b){b.classList.remove('active');});
-      btn.classList.add('active');
+      wrap.querySelectorAll('.btn-subject').forEach(function(b){b.classList.remove('active');}); btn.classList.add('active');
       state[section].subj=s;
       if(section==='submit') renderSubmitForm();
-      else {
-        document.getElementById('summary-delete-row').style.display='block';
-        renderSummary();
-      }
+      else{document.getElementById('summary-delete-row').style.display='block';renderSummary();}
     });
     wrap.appendChild(btn);
   });
 }
 
 // =====================
-// SECTION 1: SUBMIT
+// HW: SUBMIT FORM
 // =====================
-async function renderSubmitForm() {
-  document.getElementById('submit-form').style.display='block';
-  curStatuses={};
+async function renderSubmitForm(){
+  document.getElementById('submit-form').style.display='block'; curStatuses={};
   await renderStudentList();
 }
 
-async function renderStudentList() {
-  showLoading(true);
-  var students = await getStudents(state.submit.grade);
-  showLoading(false);
-  var wrap=document.getElementById('student-list-submit');
-  wrap.innerHTML='';
+async function renderStudentList(){
+  showLoading(true); var students=await getStudents(state.submit.grade); showLoading(false);
+  var wrap=document.getElementById('student-list-submit'); wrap.innerHTML='';
   students.forEach(function(name,idx){
-    var row=document.createElement('div');
-    row.className='student-row';
+    var row=document.createElement('div'); row.className='student-row';
+    var top=document.createElement('div'); top.style.cssText='display:flex;align-items:center;gap:6px;width:100%';
+    var num=document.createElement('span'); num.className='status-num'; num.textContent=(idx+1)+'.';
+    var nm=document.createElement('span'); nm.className='student-name'; nm.textContent=name;
+    top.appendChild(num); top.appendChild(nm);
+    var btns=document.createElement('div'); btns.style.cssText='display:flex;gap:6px;width:100%;flex-wrap:wrap;align-items:center';
     var bs=document.createElement('button'); bs.className='btn-submit-s'; bs.textContent='✅ ส่ง';
     var bn=document.createElement('button'); bn.className='btn-notsubmit-s'; bn.textContent='❌ ไม่ส่ง';
     var bc=document.createElement('button'); bc.className='btn-clear-s'; bc.textContent='–';
+    var ni=document.createElement('input'); ni.type='text'; ni.placeholder='หมายเหตุ...';
+    ni.id='note-'+idx;
+    ni.style.cssText='flex:1;min-width:100px;border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-family:Itim,cursive;font-size:0.82rem;background:var(--pink-light);outline:none;color:var(--text)';
+    if(curStatuses['__note_'+name]) ni.value=curStatuses['__note_'+name];
+    ni.addEventListener('input',function(){curStatuses['__note_'+name]=ni.value;});
     bs.addEventListener('click',function(){setStatus(idx,'submit',name,bs,bn);});
     bn.addEventListener('click',function(){setStatus(idx,'not',name,bs,bn);});
     bc.addEventListener('click',function(){setStatus(idx,'clear',name,bs,bn);});
-    var num=document.createElement('span'); num.className='status-num'; num.textContent=(idx+1)+'.';
-    var nm=document.createElement('span'); nm.className='student-name'; nm.textContent=name;
-    row.appendChild(num); row.appendChild(nm); row.appendChild(bs); row.appendChild(bn); row.appendChild(bc);
-    wrap.appendChild(row);
-    if(curStatuses[name]==='submit'){bs.classList.add('active');}
-    else if(curStatuses[name]==='not'){bn.classList.add('active');}
+    btns.appendChild(bs); btns.appendChild(bn); btns.appendChild(bc); btns.appendChild(ni);
+    row.appendChild(top); row.appendChild(btns); wrap.appendChild(row);
+    if(curStatuses[name]==='submit') bs.classList.add('active');
+    else if(curStatuses[name]==='not') bn.classList.add('active');
   });
 }
 
@@ -533,9 +734,7 @@ function setStatus(idx,status,name,bs,bn){
 }
 
 async function bulkSet(type){
-  showLoading(true);
-  var students=await getStudents(state.submit.grade);
-  showLoading(false);
+  showLoading(true); var students=await getStudents(state.submit.grade); showLoading(false);
   students.forEach(function(name){curStatuses[name]=type==='clear'?null:type;});
   await renderStudentList();
 }
@@ -546,68 +745,56 @@ async function saveSubmission(){
   var taskNote=document.getElementById('task-note').value.trim();
   var dateStr=calDate.day?(calDate.day+' '+THAI_MONTHS[calDate.month]+' '+calDate.year):'';
   showLoading(true);
-  var students=await getStudents(state.submit.grade);
-  var statuses={};
-  students.forEach(function(name){statuses[name]=curStatuses[name]||'not';});
+  var students=await getStudents(state.submit.grade); var statuses={};
+  students.forEach(function(name){
+    statuses[name]={status:curStatuses[name]||'not', note:curStatuses['__note_'+name]||''};
+  });
   var tasks=await getTasks(state.submit.grade,state.submit.subj);
   tasks.push({id:Date.now(),name:taskName,note:taskNote,date:dateStr,statuses:statuses});
   await saveTasks(state.submit.grade,state.submit.subj,tasks);
   showLoading(false);
-  document.getElementById('task-name').value='';
-  document.getElementById('task-note').value='';
-  var now = new Date();
-  calDate.year = now.getFullYear()+543; calDate.month = now.getMonth();
-  calDate.day = now.getDate();
-  document.getElementById('cal-text').textContent = calDate.day+' '+THAI_MONTHS[calDate.month]+' '+calDate.year;
-  renderCal();
-  curStatuses={};
-  await renderStudentList();
-  showToast('✅ บันทึกสำเร็จ!');
+  document.getElementById('task-name').value=''; document.getElementById('task-note').value='';
+  var now=new Date(); calDate.year=now.getFullYear()+543; calDate.month=now.getMonth(); calDate.day=now.getDate();
+  makeCal(calDate,'cal-month-label','cal-grid',function(day,cd){document.getElementById('cal-text').textContent=day+' '+THAI_MONTHS[cd.month]+' '+cd.year;document.getElementById('cal-popup').classList.remove('open');});
+  document.getElementById('cal-text').textContent=calDate.day+' '+THAI_MONTHS[calDate.month]+' '+calDate.year;
+  curStatuses={}; await renderStudentList(); showToast('✅ บันทึกสำเร็จ!');
 }
 
 // =====================
-// SECTION 2: SUMMARY
+// HW: SUMMARY
 // =====================
 async function renderSummary(){
-  var wrap=document.getElementById('summary-content');
-  wrap.innerHTML='<div class="empty-msg">⏳ กำลังโหลด...</div>';
+  var wrap=document.getElementById('summary-content'); wrap.innerHTML='<div class="empty-msg">⏳ กำลังโหลด...</div>';
   showLoading(true);
   var grade=state.summary.grade, subj=state.summary.subj;
-  var tasks=await getTasks(grade,subj);
-  var students=await getStudents(grade);
+  var tasks=await getTasks(grade,subj), students=await getStudents(grade);
   showLoading(false);
   if(!tasks.length){wrap.innerHTML='<div class="empty-msg">🌸 ยังไม่มีข้อมูลชิ้นงานในวิชานี้</div>';return;}
-
-  var html='<div class="summary-table-wrap"><table class="summary-table"><thead><tr><th>ชื่อ-สกุล</th>';
+  var html='<div class="summary-table-wrap"><table class="summary-table"><thead><tr><th class="name-th">ชื่อ-สกุล</th>';
   tasks.forEach(function(t){html+='<th class="clickable-header" data-tid="'+t.id+'">📄 '+t.name+'</th>';});
   html+='<th>รวม</th><th>%</th><th>คะแนนเก็บ<br><small>(เต็ม 70)</small></th></tr></thead><tbody>';
   students.forEach(function(name){
-    html+='<tr><td class="name-col">'+name+'</td>';
-    var sub=0;
+    html+='<tr><td class="name-col">'+name+'</td>'; var sub=0;
     tasks.forEach(function(t){
-      var st=t.statuses&&t.statuses[name];
+      var raw=t.statuses&&t.statuses[name]; var st=getStatusVal(raw);
       if(st==='submit'){html+='<td><span class="icon-submit" title="ส่งแล้ว"></span></td>';sub++;}
       else if(st==='not'){html+='<td><span class="icon-not" title="ยังไม่ส่ง"></span></td>';}
-      else{html+='<td><span class="icon-none" title="ไม่ระบุ"></span></td>';}
+      else{html+='<td><span class="icon-none"></span></td>';}
     });
-    var total=tasks.length, pct=total?Math.round(sub/total*100):0, score=total?Math.round(sub/total*70):0;
-    html+='<td class="td-total">'+sub+'/'+total+'</td>';
-    html+='<td class="td-pct" style="color:'+pctColor(pct)+'">'+pct+'%</td>';
-    html+='<td class="td-score">'+score+'</td></tr>';
+    var total=tasks.length,pct=total?Math.round(sub/total*100):0,score=total?Math.round(sub/total*70):0;
+    html+='<td class="td-total">'+sub+'/'+total+'</td><td class="td-pct" style="color:'+pctColor(pct)+'">'+pct+'%</td><td class="td-score">'+score+'</td></tr>';
   });
   html+='</tbody></table></div>';
-
   var missers=[];
   students.forEach(function(name){
-    var m=tasks.filter(function(t){return t.statuses&&t.statuses[name]==='not';});
+    var m=tasks.filter(function(t){return getStatusVal(t.statuses&&t.statuses[name])==='not';});
     if(m.length) missers.push({name:name,missing:m});
   });
   missers.sort(function(a,b){return b.missing.length-a.missing.length;});
   html+='<hr class="divider"><div class="missing-list"><div style="font-size:1rem;margin-bottom:12px;">🚨 <strong>นักเรียนที่ยังไม่ส่งงาน</strong></div>';
   if(!missers.length){
-    if(tasks.some(function(t){return Object.values(t.statuses||{}).some(function(v){return v!==null;});})){
+    if(tasks.some(function(t){return Object.values(t.statuses||{}).some(function(v){return v!==null;});}))
       html+='<div class="empty-msg">🎉 นักเรียนทุกคนส่งงานครบ!</div>';
-    }
   } else {
     missers.forEach(function(m,i){
       html+='<div class="missing-item" data-mi="'+i+'"><div class="missing-header"><span class="missing-name">👤 '+m.name+'</span><span class="missing-count">ยังไม่ส่ง '+m.missing.length+' งาน</span></div>';
@@ -616,51 +803,41 @@ async function renderSummary(){
       html+='</div></div>';
     });
   }
-  html+='</div>';
-  wrap.innerHTML=html;
-
-  wrap.querySelectorAll('.clickable-header[data-tid]').forEach(function(th){
-    th.addEventListener('click',function(){openTaskDetail(parseInt(th.dataset.tid));});
-  });
-  wrap.querySelectorAll('.missing-item[data-mi]').forEach(function(el){
-    el.addEventListener('click',function(){document.getElementById('mt-'+el.dataset.mi).classList.toggle('open');});
-  });
-  wrap.querySelectorAll('.task-chip').forEach(function(chip){
-    chip.addEventListener('click',function(e){e.stopPropagation();openQuickSubmit(parseInt(chip.dataset.tid),chip.dataset.student);});
-  });
+  html+='</div>'; wrap.innerHTML=html;
+  wrap.querySelectorAll('.clickable-header[data-tid]').forEach(function(th){th.addEventListener('click',function(){openTaskDetail(parseInt(th.dataset.tid));});});
+  wrap.querySelectorAll('.missing-item[data-mi]').forEach(function(el){el.addEventListener('click',function(){document.getElementById('mt-'+el.dataset.mi).classList.toggle('open');});});
+  wrap.querySelectorAll('.task-chip').forEach(function(chip){chip.addEventListener('click',function(e){e.stopPropagation();openQuickSubmit(parseInt(chip.dataset.tid),chip.dataset.student);});});
 }
 
 async function openTaskDetail(taskId){
   showLoading(true);
-  var grade=state.summary.grade, subj=state.summary.subj;
-  var tasks=await getTasks(grade,subj);
-  var students=await getStudents(grade);
-  showLoading(false);
-  var task=tasks.find(function(t){return t.id===taskId;});
-  if(!task) return;
+  var grade=state.summary.grade,subj=state.summary.subj;
+  var tasks=await getTasks(grade,subj),students=await getStudents(grade); showLoading(false);
+  var task=tasks.find(function(t){return t.id===taskId;}); if(!task) return;
   editingTaskId=taskId;
   document.getElementById('edit-info-form').classList.remove('open');
   document.getElementById('modal-task-title').textContent='📄 '+task.name;
   renderTaskInfo(task);
   document.getElementById('edit-task-name-input').value=task.name||'';
   document.getElementById('edit-task-note-input').value=task.note||'';
-  var wrap=document.getElementById('modal-task-students');
-  wrap.innerHTML='';
+  var wrap=document.getElementById('modal-task-students'); wrap.innerHTML='';
   students.forEach(function(name,idx){
     var row=document.createElement('div'); row.className='student-row';
+    var top=document.createElement('div'); top.style.cssText='display:flex;align-items:center;gap:6px;width:100%';
+    var num=document.createElement('span'); num.className='status-num'; num.textContent=(idx+1)+'.';
+    var nm=document.createElement('span'); nm.className='student-name'; nm.textContent=name;
+    top.appendChild(num); top.appendChild(nm);
+    var btns=document.createElement('div'); btns.style.cssText='display:flex;gap:6px;width:100%';
     var bs=document.createElement('button'); bs.className='btn-submit-s'; bs.textContent='✅ ส่ง';
     var bn=document.createElement('button'); bn.className='btn-notsubmit-s'; bn.textContent='❌ ไม่ส่ง';
     var bc=document.createElement('button'); bc.className='btn-clear-s'; bc.textContent='–';
-    var st=task.statuses&&task.statuses[name];
-    bs.classList.toggle('active',st==='submit');
-    bn.classList.toggle('active',st==='not');
+    var st=task.statuses&&task.statuses[name]; var stVal=getStatusVal(st); var noteVal=getNoteVal(st);
+    bs.classList.toggle('active',stVal==='submit'); bn.classList.toggle('active',stVal==='not');
     bs.addEventListener('click',function(){setModalStatus(task,name,bs,bn,'submit',grade,subj);});
     bn.addEventListener('click',function(){setModalStatus(task,name,bs,bn,'not',grade,subj);});
     bc.addEventListener('click',function(){setModalStatus(task,name,bs,bn,'clear',grade,subj);});
-    var num=document.createElement('span'); num.className='status-num'; num.textContent=(idx+1)+'.';
-    var nm=document.createElement('span'); nm.className='student-name'; nm.textContent=name;
-    row.appendChild(num); row.appendChild(nm); row.appendChild(bs); row.appendChild(bn); row.appendChild(bc);
-    wrap.appendChild(row);
+    btns.appendChild(bs); btns.appendChild(bn); btns.appendChild(bc);
+    row.appendChild(top); row.appendChild(btns); wrap.appendChild(row);
   });
   openModal('modal-task');
 }
@@ -669,26 +846,23 @@ function renderTaskInfo(task){
   var info='';
   if(task.date) info+='<p>📅 วันที่สั่งงาน: <span class="badge">'+task.date+'</span></p>';
   if(task.note) info+='<p>🗒️ หมายเหตุ: '+task.note+'</p>';
-  document.getElementById('modal-task-info').innerHTML=info||'<p style="color:var(--text-light);font-size:0.88rem;">ไม่มีข้อมูลเพิ่มเติม</p>';
+  document.getElementById('modal-task-info').innerHTML=info||'<p style="color:var(--text-light);font-size:0.85rem;">ไม่มีข้อมูลเพิ่มเติม</p>';
 }
 
 async function setModalStatus(task,name,bs,bn,status,grade,subj){
   if(!task.statuses) task.statuses={};
-  task.statuses[name]=status==='clear'?null:status;
-  bs.classList.toggle('active',status==='submit');
-  bn.classList.toggle('active',status==='not');
-  var tasks=await getTasks(grade,subj);
-  var idx=tasks.findIndex(function(t){return t.id===task.id;});
-  if(idx>=0) tasks[idx]=task;
-  await saveTasks(grade,subj,tasks);
+  var oldVal=task.statuses[name]; var oldNote=getNoteVal(oldVal);
+  task.statuses[name]=status==='clear'?null:{status:status,note:oldNote};
+  bs.classList.toggle('active',status==='submit'); bn.classList.toggle('active',status==='not');
+  var tasks=await getTasks(grade,subj); var idx=tasks.findIndex(function(t){return t.id===task.id;});
+  if(idx>=0) tasks[idx]=task; await saveTasks(grade,subj,tasks);
 }
 
 async function saveTaskInfo(){
-  var grade=state.summary.grade, subj=state.summary.subj;
+  var grade=state.summary.grade,subj=state.summary.subj;
   var newName=document.getElementById('edit-task-name-input').value.trim();
   if(!newName){showToast('⚠️ กรุณาใส่ชื่อชิ้นงาน!','#E06B6B');return;}
-  showLoading(true);
-  var tasks=await getTasks(grade,subj);
+  showLoading(true); var tasks=await getTasks(grade,subj);
   var task=tasks.find(function(t){return t.id===editingTaskId;});
   if(task){task.name=newName;task.note=document.getElementById('edit-task-note-input').value.trim();await saveTasks(grade,subj,tasks);}
   showLoading(false);
@@ -700,26 +874,6 @@ async function saveTaskInfo(){
 
 async function saveTaskEdit(){ await renderSummary(); showToast('✅ บันทึกสำเร็จ!'); closeModal('modal-task'); }
 
-async function confirmDeleteAll(){
-  var grade=state.summary.grade, subj=state.summary.subj;
-  if(!grade||!subj) return;
-  var tasks=await getTasks(grade,subj);
-  if(!tasks.length){showToast('ไม่มีชิ้นงานให้ลบค่ะ','#E06B6B');return;}
-  document.getElementById('modal-delete-all-msg').textContent=
-    'ต้องการลบชิ้นงานทั้งหมด '+tasks.length+' ชิ้น ในวิชา "'+subj+'" ของ ป.'+grade+' ใช่ไหม?\n\nข้อมูลทั้งหมดจะหายถาวร ไม่สามารถกู้คืนได้';
-  openModal('modal-delete-all');
-}
-
-async function doDeleteAll(){
-  var grade=state.summary.grade, subj=state.summary.subj;
-  showLoading(true);
-  await dbSet('tasks_'+grade+'_'+subj,[]);
-  showLoading(false);
-  closeModal('modal-delete-all');
-  await renderSummary();
-  showToast('🗑️ ลบชิ้นงานทั้งหมดสำเร็จ');
-}
-
 async function confirmDeleteTask(){
   deletingTaskId=editingTaskId;
   var tasks=await getTasks(state.summary.grade,state.summary.subj);
@@ -729,82 +883,257 @@ async function confirmDeleteTask(){
 }
 
 async function doDeleteTask(){
-  showLoading(true);
-  var tasks=await getTasks(state.summary.grade,state.summary.subj);
+  showLoading(true); var tasks=await getTasks(state.summary.grade,state.summary.subj);
   tasks=tasks.filter(function(t){return t.id!==deletingTaskId;});
-  await saveTasks(state.summary.grade,state.summary.subj,tasks);
-  showLoading(false);
-  closeModal('modal-delete'); closeModal('modal-task');
-  await renderSummary();
-  showToast('🗑️ ลบชิ้นงานสำเร็จ');
+  await saveTasks(state.summary.grade,state.summary.subj,tasks); showLoading(false);
+  closeModal('modal-delete'); closeModal('modal-task'); await renderSummary(); showToast('🗑️ ลบชิ้นงานสำเร็จ');
+}
+
+async function confirmDeleteAll(){
+  var grade=state.summary.grade,subj=state.summary.subj; if(!grade||!subj) return;
+  var tasks=await getTasks(grade,subj);
+  if(!tasks.length){showToast('ไม่มีชิ้นงานให้ลบค่ะ','#E06B6B');return;}
+  document.getElementById('modal-delete-all-msg').textContent='ต้องการลบชิ้นงานทั้งหมด '+tasks.length+' ชิ้น ในวิชา "'+subj+'" ของ ป.'+grade+' ใช่ไหม?';
+  openModal('modal-delete-all');
+}
+
+async function doDeleteAll(){
+  showLoading(true); await dbSet('tasks_'+state.summary.grade+'_'+state.summary.subj,[]); showLoading(false);
+  closeModal('modal-delete-all'); await renderSummary(); showToast('🗑️ ลบชิ้นงานทั้งหมดสำเร็จ');
 }
 
 async function openQuickSubmit(taskId,studentName){
   var tasks=await getTasks(state.summary.grade,state.summary.subj);
-  var task=tasks.find(function(t){return t.id===taskId;});
-  if(!task) return;
+  var task=tasks.find(function(t){return t.id===taskId;}); if(!task) return;
   quickData={grade:state.summary.grade,subj:state.summary.subj,taskId:taskId,studentName:studentName};
   document.getElementById('modal-quick-info').textContent='ชิ้นงาน: '+task.name+'\nนักเรียน: '+studentName;
-  document.getElementById('modal-quick-note').value='';
-  openModal('modal-quick');
+  document.getElementById('modal-quick-note').value=''; openModal('modal-quick');
 }
 
 async function saveQuickSubmit(){
-  if(!quickData) return;
-  showLoading(true);
+  if(!quickData) return; showLoading(true);
   var tasks=await getTasks(quickData.grade,quickData.subj);
   var task=tasks.find(function(t){return t.id===quickData.taskId;});
-  if(task){if(!task.statuses)task.statuses={};task.statuses[quickData.studentName]='submit';await saveTasks(quickData.grade,quickData.subj,tasks);}
-  showLoading(false);
-  closeModal('modal-quick');
-  await renderSummary();
-  showToast('✅ บันทึกการส่งงานสำเร็จ!');
+  if(task){if(!task.statuses)task.statuses={};
+    var oldNote=getNoteVal(task.statuses[quickData.studentName]);
+    task.statuses[quickData.studentName]={status:'submit',note:oldNote};
+    await saveTasks(quickData.grade,quickData.subj,tasks);}
+  showLoading(false); closeModal('modal-quick'); await renderSummary(); showToast('✅ บันทึกสำเร็จ!');
 }
 
-// =====================
-// SECTION 3: EDIT
-// =====================
+// HW: EDIT NAMES
 async function renderEdit(){
   document.getElementById('edit-content').style.display='block';
-  showLoading(true);
-  var students=await getStudents(state.edit.grade);
-  showLoading(false);
+  showLoading(true); var students=await getStudents(state.edit.grade); showLoading(false);
   document.getElementById('edit-textarea').value=students.join('\n');
 }
-
 async function saveNames(){
   var names=document.getElementById('edit-textarea').value.split('\n').map(function(n){return n.trim();}).filter(function(n){return n.length>0;});
-  showLoading(true);
-  await dbSet('students_'+state.edit.grade,names);
-  showLoading(false);
+  showLoading(true); await dbSet('students_'+state.edit.grade,names); showLoading(false);
   showToast('✅ บันทึกรายชื่อสำเร็จ!');
+}
+
+// =====================
+// ATTENDANCE: RECORD
+// =====================
+function checkAttForm(){
+  var grade=document.getElementById('att-grade-select').value;
+  var subj=document.getElementById('att-subject-select').value;
+  var hasDate=attCalDate.day>0;
+  if(grade&&subj&&hasDate) loadAttForm(grade,subj);
+  else document.getElementById('att-record-form').style.display='none';
+}
+
+async function loadAttForm(grade,subj){
+  var dateKey=makeDateKey(attCalDate);
+  showLoading(true);
+  var students=await getStudents(grade);
+  var existing=await getAttDay(grade,subj,dateKey);
+  showLoading(false);
+  attStatuses={};
+  Object.keys(existing).forEach(function(k){attStatuses[k]=existing[k];});
+  document.getElementById('att-record-form').style.display='block';
+  renderAttStudentList(students);
+}
+
+function renderAttStudentList(students){
+  var wrap=document.getElementById('att-student-list'); wrap.innerHTML='';
+  students.forEach(function(name,idx){
+    var row=document.createElement('div'); row.className='student-row';
+    var top=document.createElement('div'); top.style.cssText='display:flex;align-items:center;gap:6px;width:100%';
+    var num=document.createElement('span'); num.className='status-num'; num.textContent=(idx+1)+'.';
+    var nm=document.createElement('span'); nm.className='student-name'; nm.textContent=name;
+    top.appendChild(num); top.appendChild(nm);
+    var btns=document.createElement('div'); btns.style.cssText='display:flex;gap:6px;width:100%';
+    var bc=document.createElement('button'); bc.className='btn-att btn-come'; bc.textContent='✅ มา';
+    var bl=document.createElement('button'); bl.className='btn-att btn-leave'; bl.textContent='🟡 ลา';
+    var ba=document.createElement('button'); ba.className='btn-att btn-absent'; ba.textContent='❌ ขาด';
+    bc.addEventListener('click',function(){setAttStatus(name,bc,bl,ba,'come');});
+    bl.addEventListener('click',function(){setAttStatus(name,bc,bl,ba,'leave');});
+    ba.addEventListener('click',function(){setAttStatus(name,bc,bl,ba,'absent');});
+    if(attStatuses[name]==='come') bc.classList.add('active');
+    else if(attStatuses[name]==='leave') bl.classList.add('active');
+    else if(attStatuses[name]==='absent') ba.classList.add('active');
+    btns.appendChild(bc); btns.appendChild(bl); btns.appendChild(ba);
+    row.appendChild(top); row.appendChild(btns); wrap.appendChild(row);
+  });
+}
+
+function setAttStatus(name,bc,bl,ba,status){
+  attStatuses[name]=status;
+  bc.classList.toggle('active',status==='come');
+  bl.classList.toggle('active',status==='leave');
+  ba.classList.toggle('active',status==='absent');
+}
+
+async function attBulkSet(type){
+  var grade=document.getElementById('att-grade-select').value;
+  var subj=document.getElementById('att-subject-select').value;
+  if(!grade||!subj) return;
+  showLoading(true); var students=await getStudents(grade); showLoading(false);
+  students.forEach(function(name){attStatuses[name]=type==='clear'?null:type;});
+  renderAttStudentList(students);
+}
+
+async function saveAttendance(){
+  var grade=document.getElementById('att-grade-select').value;
+  var subj=document.getElementById('att-subject-select').value;
+  if(!grade||!subj||!attCalDate.day){showToast('⚠️ กรุณาเลือกชั้น วิชา และวันที่','#E06B6B');return;}
+  var dateKey=makeDateKey(attCalDate);
+  showLoading(true);
+  await saveAttDay(grade,subj,dateKey,attStatuses);
+  // เพิ่มวันที่เข้าลิสต์
+  var dates=await getAttDates(grade,subj);
+  if(dates.indexOf(dateKey)<0){dates.push(dateKey);dates.sort();await saveAttDates(grade,subj,dates);}
+  showLoading(false);
+  showToast('✅ บันทึกการเข้าเรียนสำเร็จ!');
+}
+
+// =====================
+// ATTENDANCE: STATS
+// =====================
+var currentStatMonth = 'all'; // 'all' or index of SCHOOL_MONTHS
+
+async function renderAttStat(){
+  var grade=document.getElementById('stat-grade-select').value;
+  var subj=document.getElementById('stat-subject-select').value;
+  var wrap=document.getElementById('att-stat-content');
+  if(!grade||!subj){wrap.innerHTML='';return;}
+  wrap.innerHTML='<div class="empty-msg">⏳ กำลังโหลด...</div>';
+  showLoading(true);
+  var students=await getStudents(grade);
+  var allDates=await getAttDates(grade,subj);
+  // โหลดทุกวัน
+  var dayData={};
+  for(var i=0;i<allDates.length;i++){
+    dayData[allDates[i]]=await getAttDay(grade,subj,allDates[i]);
+  }
+  showLoading(false);
+  if(!allDates.length){wrap.innerHTML='<div class="empty-msg">🌸 ยังไม่มีข้อมูลการมาเรียนในวิชานี้</div>';return;}
+
+  // หาเดือนที่มีข้อมูล
+  function datesInMonth(sm){
+    return allDates.filter(function(d){
+      var parts=d.split('-'); var y=parseInt(parts[0])+543; var m=parseInt(parts[1])-1;
+      return y===sm.y&&m===sm.m;
+    });
+  }
+  function statsForDates(dates){
+    var result={};
+    students.forEach(function(name){result[name]={come:0,leave:0,absent:0,total:0};});
+    dates.forEach(function(dk){
+      var rec=dayData[dk]||{};
+      students.forEach(function(name){
+        var s=rec[name];
+        if(s==='come'){result[name].come++;result[name].total++;}
+        else if(s==='leave'){result[name].leave++;result[name].total++;}
+        else if(s==='absent'){result[name].absent++;result[name].total++;}
+      });
+    });
+    return result;
+  }
+
+  var activeDates = currentStatMonth==='all' ? allDates : datesInMonth(SCHOOL_MONTHS[currentStatMonth]);
+  var stats = statsForDates(activeDates);
+  var totalDays = activeDates.length;
+
+  // month tabs
+  var tabsHtml='<div class="month-tabs"><span class="month-tab'+(currentStatMonth==='all'?' active':'')+(allDates.length?' has-data':'')+'" data-mi="all">ทั้งหมด</span>';
+  SCHOOL_MONTHS.forEach(function(sm,i){
+    var has=datesInMonth(sm).length>0;
+    if(!has) return;
+    tabsHtml+='<span class="month-tab'+(currentStatMonth===i?' active':'')+(has?' has-data':'')+'" data-mi="'+i+'">'+sm.label+'</span>';
+  });
+  tabsHtml+='</div>';
+
+  // table
+  var html=tabsHtml+'<div class="summary-table-wrap"><table class="summary-table"><thead><tr>';
+  html+='<th class="name-th">ชื่อ-สกุล</th><th>มา</th><th>ลา</th><th>ขาด</th><th>รวม</th><th>% มา</th></tr></thead><tbody>';
+  students.forEach(function(name){
+    var s=stats[name];
+    var pct=totalDays>0?Math.round(s.come/totalDays*100):0;
+    html+='<tr><td class="name-col">'+name+'</td>';
+    html+='<td style="color:var(--green-dark);font-weight:bold">'+s.come+'</td>';
+    html+='<td style="color:#d4a800;font-weight:bold">'+s.leave+'</td>';
+    html+='<td style="color:var(--red-dark);font-weight:bold">'+s.absent+'</td>';
+    html+='<td>'+totalDays+'</td>';
+    html+='<td style="color:'+pctColor(pct)+';font-weight:bold">'+pct+'%</td></tr>';
+  });
+  html+='</tbody></table></div>';
+
+  // top 5 ขาด
+  var sorted=students.slice().sort(function(a,b){return stats[b].absent-stats[a].absent;});
+  var top5=sorted.filter(function(n){return stats[n].absent>0;}).slice(0,5);
+  html+='<hr class="divider"><div style="font-size:1rem;margin-bottom:12px;">🏆 <strong>ขาดเรียนมากที่สุด 5 อันดับแรก</strong></div>';
+  html+='<div class="top-absent-list">';
+  if(!top5.length){html+='<div class="empty-msg">🎉 ไม่มีนักเรียนที่ขาดเรียนในช่วงนี้</div>';}
+  else{
+    var ranks=['🥇','🥈','🥉','4️⃣','5️⃣'];
+    top5.forEach(function(name,i){
+      html+='<div class="top-absent-item"><span class="top-rank">'+ranks[i]+'</span><span class="top-name">'+name+'</span><span class="top-count">ขาด '+stats[name].absent+' วัน</span></div>';
+    });
+  }
+  html+='</div>';
+  wrap.innerHTML=html;
+
+  // bind month tab clicks
+  wrap.querySelectorAll('.month-tab').forEach(function(tab){
+    tab.addEventListener('click',function(){
+      var mi=tab.dataset.mi; currentStatMonth=mi==='all'?'all':parseInt(mi);
+      renderAttStat();
+    });
+  });
 }
 
 // =====================
 // BIND EVENTS
 // =====================
-document.addEventListener('DOMContentLoaded', function(){
-  buildGradeBtns('submit');
-  buildGradeBtns('summary');
-  buildGradeBtns('edit');
-  initCal();
-  document.getElementById('cal-text').textContent = calDate.day+' '+THAI_MONTHS[calDate.month]+' '+calDate.year;
+document.addEventListener('DOMContentLoaded',function(){
+  buildGradeBtns('submit'); buildGradeBtns('summary'); buildGradeBtns('edit');
+  initCal(); initAttCal();
 
-  document.getElementById('cal-display').addEventListener('click', toggleCal);
-  document.getElementById('cal-prev').addEventListener('click', function(){calNav(-1);});
-  document.getElementById('cal-next').addEventListener('click', function(){calNav(1);});
-  document.addEventListener('click', function(e){
-    var popup=document.getElementById('cal-popup');
-    var wrap=document.querySelector('.calendar-wrap');
-    if(wrap&&!wrap.contains(e.target)) popup.classList.remove('open');
+  // HW calendar
+  document.getElementById('cal-display').addEventListener('click',function(){document.getElementById('cal-popup').classList.toggle('open');});
+  document.getElementById('cal-prev').addEventListener('click',function(){calDate.month--;if(calDate.month<0){calDate.month=11;calDate.year--;}makeCal(calDate,'cal-month-label','cal-grid',function(day,cd){document.getElementById('cal-text').textContent=day+' '+THAI_MONTHS[cd.month]+' '+cd.year;document.getElementById('cal-popup').classList.remove('open');});});
+  document.getElementById('cal-next').addEventListener('click',function(){calDate.month++;if(calDate.month>11){calDate.month=0;calDate.year++;}makeCal(calDate,'cal-month-label','cal-grid',function(day,cd){document.getElementById('cal-text').textContent=day+' '+THAI_MONTHS[cd.month]+' '+cd.year;document.getElementById('cal-popup').classList.remove('open');});});
+
+  // ATT calendar
+  document.getElementById('att-cal-display').addEventListener('click',function(){document.getElementById('att-cal-popup').classList.toggle('open');});
+  document.getElementById('att-cal-prev').addEventListener('click',function(){attCalDate.month--;if(attCalDate.month<0){attCalDate.month=11;attCalDate.year--;}makeCal(attCalDate,'att-cal-month-label','att-cal-grid',function(day,cd){document.getElementById('att-cal-text').textContent=day+' '+THAI_MONTHS[cd.month]+' '+cd.year;document.getElementById('att-cal-popup').classList.remove('open');checkAttForm();});});
+  document.getElementById('att-cal-next').addEventListener('click',function(){attCalDate.month++;if(attCalDate.month>11){attCalDate.month=0;attCalDate.year++;}makeCal(attCalDate,'att-cal-month-label','att-cal-grid',function(day,cd){document.getElementById('att-cal-text').textContent=day+' '+THAI_MONTHS[cd.month]+' '+cd.year;document.getElementById('att-cal-popup').classList.remove('open');checkAttForm();});});
+
+  // close calendars on outside click
+  document.addEventListener('click',function(e){
+    var wraps=document.querySelectorAll('.calendar-wrap');
+    wraps.forEach(function(w){if(!w.contains(e.target)){var p=w.querySelector('.calendar-popup');if(p)p.classList.remove('open');}});
   });
 
+  // HW buttons
   document.getElementById('bulk-submit').addEventListener('click',function(){bulkSet('submit');});
   document.getElementById('bulk-not').addEventListener('click',function(){bulkSet('not');});
   document.getElementById('bulk-clear').addEventListener('click',function(){bulkSet('clear');});
   document.getElementById('btn-save-submission').addEventListener('click',saveSubmission);
   document.getElementById('btn-save-names').addEventListener('click',saveNames);
-
   document.getElementById('btn-toggle-edit-info').addEventListener('click',function(){document.getElementById('edit-info-form').classList.toggle('open');});
   document.getElementById('btn-save-task-info').addEventListener('click',saveTaskInfo);
   document.getElementById('btn-close-task').addEventListener('click',function(){closeModal('modal-task');});
@@ -815,22 +1144,22 @@ document.addEventListener('DOMContentLoaded', function(){
   document.getElementById('btn-delete-all-tasks').addEventListener('click',confirmDeleteAll);
   document.getElementById('btn-close-delete-all').addEventListener('click',function(){closeModal('modal-delete-all');});
   document.getElementById('btn-do-delete-all').addEventListener('click',doDeleteAll);
-
   document.getElementById('btn-close-delete').addEventListener('click',function(){closeModal('modal-delete');});
   document.getElementById('btn-do-delete').addEventListener('click',doDeleteTask);
 
-  document.querySelectorAll('.modal-overlay').forEach(function(m){
-    m.addEventListener('click',function(e){if(e.target===m)m.classList.remove('open');});
-  });
+  // ATT buttons
+  document.getElementById('att-grade-select').addEventListener('change',checkAttForm);
+  document.getElementById('att-subject-select').addEventListener('change',checkAttForm);
+  document.getElementById('att-bulk-come').addEventListener('click',function(){attBulkSet('come');});
+  document.getElementById('att-bulk-leave').addEventListener('click',function(){attBulkSet('leave');});
+  document.getElementById('att-bulk-absent').addEventListener('click',function(){attBulkSet('absent');});
+  document.getElementById('att-bulk-clear').addEventListener('click',function(){attBulkSet('clear');});
+  document.getElementById('btn-save-att').addEventListener('click',saveAttendance);
+  document.getElementById('stat-grade-select').addEventListener('change',function(){currentStatMonth='all';renderAttStat();});
+  document.getElementById('stat-subject-select').addEventListener('change',function(){currentStatMonth='all';renderAttStat();});
 
-  document.querySelectorAll('.nav a').forEach(function(a){
-    a.addEventListener('click',function(e){
-      e.preventDefault();
-      var id=a.getAttribute('href').substring(1);
-      var el=document.getElementById(id);
-      if(el){var offset=document.querySelector('.header').offsetHeight+12;window.scrollTo({top:el.getBoundingClientRect().top+window.scrollY-offset,behavior:'smooth'});}
-    });
-  });
+  // modals close on overlay click
+  document.querySelectorAll('.modal-overlay').forEach(function(m){m.addEventListener('click',function(e){if(e.target===m)m.classList.remove('open');});});
 });
 </script>
 </body>
