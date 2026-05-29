@@ -317,18 +317,9 @@ select.styled-select{border:2px solid var(--border);border-radius:var(--radius-s
 <div class="app-panel" id="app-att">
 
 <div class="section" id="sec-att-record">
-  <div class="section-title attend-title"><span>📋</span> บันทึกการมาเรียน</div>
+  <div class="section-title attend-title"><span>📋</span> บันทึกการมาเรียน — ป.5</div>
   <div class="card">
     <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;margin-bottom:16px;">
-      <div class="form-group" style="margin:0">
-        <label>🏫 ระดับชั้น</label>
-        <select class="styled-select" id="att-grade-select">
-          <option value="">-- เลือกชั้น --</option>
-          <option value="4">ป.4</option>
-          <option value="5">ป.5</option>
-          <option value="6">ป.6</option>
-        </select>
-      </div>
       <div class="form-group" style="margin:0">
         <label>📅 วันที่</label>
         <div class="calendar-wrap">
@@ -342,15 +333,6 @@ select.styled-select{border:2px solid var(--border);border-radius:var(--radius-s
             <div class="cal-grid" id="att-cal-grid"></div>
           </div>
         </div>
-      </div>
-      <div class="form-group" style="margin:0">
-        <label>📚 รายวิชา</label>
-        <select class="styled-select" id="att-subject-select">
-          <option value="">-- เลือกวิชา --</option>
-          <option>ภาษาอังกฤษพื้นฐาน</option>
-          <option>ภาษาอังกฤษเพิ่มเติม</option>
-          <option>สังคมศึกษา</option>
-        </select>
       </div>
     </div>
     <div id="att-record-form" style="display:none">
@@ -368,27 +350,10 @@ select.styled-select{border:2px solid var(--border);border-radius:var(--radius-s
 </div>
 
 <div class="section" id="sec-att-stat">
-  <div class="section-title attend-title"><span>📈</span> สถิติการมาเรียน</div>
+  <div class="section-title attend-title"><span>📈</span> สถิติการมาเรียน — ป.5</div>
   <div class="card">
-    <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;margin-bottom:16px;">
-      <div class="form-group" style="margin:0">
-        <label>🏫 ระดับชั้น</label>
-        <select class="styled-select" id="stat-grade-select">
-          <option value="">-- เลือกชั้น --</option>
-          <option value="4">ป.4</option>
-          <option value="5">ป.5</option>
-          <option value="6">ป.6</option>
-        </select>
-      </div>
-      <div class="form-group" style="margin:0">
-        <label>📚 รายวิชา</label>
-        <select class="styled-select" id="stat-subject-select">
-          <option value="">-- เลือกวิชา --</option>
-          <option>ภาษาอังกฤษพื้นฐาน</option>
-          <option>ภาษาอังกฤษเพิ่มเติม</option>
-          <option>สังคมศึกษา</option>
-        </select>
-      </div>
+    <div style="margin-bottom:16px;">
+      <button class="btn-save blue-save" style="margin-top:0" id="btn-load-stat">📊 แสดงสถิติ</button>
     </div>
     <div id="att-stat-content"></div>
   </div>
@@ -937,10 +902,8 @@ async function saveNames(){
 // ATTENDANCE: RECORD
 // =====================
 function checkAttForm(){
-  var grade=document.getElementById('att-grade-select').value;
-  var subj=document.getElementById('att-subject-select').value;
   var hasDate=attCalDate.day>0;
-  if(grade&&subj&&hasDate) loadAttForm(grade,subj);
+  if(hasDate) loadAttForm('5','general');
   else document.getElementById('att-record-form').style.display='none';
 }
 
@@ -987,22 +950,17 @@ function setAttStatus(name,bc,bl,ba,status){
 }
 
 async function attBulkSet(type){
-  var grade=document.getElementById('att-grade-select').value;
-  var subj=document.getElementById('att-subject-select').value;
-  if(!grade||!subj) return;
-  showLoading(true); var students=await getStudents(grade); showLoading(false);
+  showLoading(true); var students=await getStudents('5'); showLoading(false);
   students.forEach(function(name){attStatuses[name]=type==='clear'?null:type;});
   renderAttStudentList(students);
 }
 
 async function saveAttendance(){
-  var grade=document.getElementById('att-grade-select').value;
-  var subj=document.getElementById('att-subject-select').value;
-  if(!grade||!subj||!attCalDate.day){showToast('⚠️ กรุณาเลือกชั้น วิชา และวันที่','#E06B6B');return;}
+  if(!attCalDate.day){showToast('⚠️ กรุณาเลือกวันที่','#E06B6B');return;}
+  var grade='5', subj='general';
   var dateKey=makeDateKey(attCalDate);
   showLoading(true);
   await saveAttDay(grade,subj,dateKey,attStatuses);
-  // เพิ่มวันที่เข้าลิสต์
   var dates=await getAttDates(grade,subj);
   if(dates.indexOf(dateKey)<0){dates.push(dateKey);dates.sort();await saveAttDates(grade,subj,dates);}
   showLoading(false);
@@ -1015,10 +973,8 @@ async function saveAttendance(){
 var currentStatMonth = 'all'; // 'all' or index of SCHOOL_MONTHS
 
 async function renderAttStat(){
-  var grade=document.getElementById('stat-grade-select').value;
-  var subj=document.getElementById('stat-subject-select').value;
+  var grade='5', subj='general';
   var wrap=document.getElementById('att-stat-content');
-  if(!grade||!subj){wrap.innerHTML='';return;}
   wrap.innerHTML='<div class="empty-msg">⏳ กำลังโหลด...</div>';
   showLoading(true);
   var students=await getStudents(grade);
@@ -1148,15 +1104,12 @@ document.addEventListener('DOMContentLoaded',function(){
   document.getElementById('btn-do-delete').addEventListener('click',doDeleteTask);
 
   // ATT buttons
-  document.getElementById('att-grade-select').addEventListener('change',checkAttForm);
-  document.getElementById('att-subject-select').addEventListener('change',checkAttForm);
   document.getElementById('att-bulk-come').addEventListener('click',function(){attBulkSet('come');});
   document.getElementById('att-bulk-leave').addEventListener('click',function(){attBulkSet('leave');});
   document.getElementById('att-bulk-absent').addEventListener('click',function(){attBulkSet('absent');});
   document.getElementById('att-bulk-clear').addEventListener('click',function(){attBulkSet('clear');});
   document.getElementById('btn-save-att').addEventListener('click',saveAttendance);
-  document.getElementById('stat-grade-select').addEventListener('change',function(){currentStatMonth='all';renderAttStat();});
-  document.getElementById('stat-subject-select').addEventListener('change',function(){currentStatMonth='all';renderAttStat();});
+  document.getElementById('btn-load-stat').addEventListener('click',function(){currentStatMonth='all';renderAttStat();});
 
   // modals close on overlay click
   document.querySelectorAll('.modal-overlay').forEach(function(m){m.addEventListener('click',function(e){if(e.target===m)m.classList.remove('open');});});
