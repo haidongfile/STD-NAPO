@@ -618,9 +618,9 @@
   <div class="section-title"><span class="icon">📝</span> บันทึกการส่งงาน</div>
   <div class="card">
     <div class="selector-row" id="grade-btns-submit">
-      <button class="btn-grade" onclick="selectGrade('submit',4,this)">🌸 ป.4</button>
-      <button class="btn-grade" onclick="selectGrade('submit',5,this)">🌼 ป.5</button>
-      <button class="btn-grade" onclick="selectGrade('submit',6,this)">🌺 ป.6</button>
+      <button class="btn-grade" data-section="submit" data-grade="4">🌸 ป.4</button>
+      <button class="btn-grade" data-section="submit" data-grade="5">🌼 ป.5</button>
+      <button class="btn-grade" data-section="submit" data-grade="6">🌺 ป.6</button>
     </div>
     <div class="selector-row" id="subject-btns-submit" style="display:none"></div>
     <div id="submit-form" style="display:none">
@@ -635,26 +635,26 @@
       <div class="form-group">
         <label>📅 วันที่สั่งงาน</label>
         <div class="calendar-wrap">
-          <div class="calendar-input" id="cal-display" onclick="toggleCal()">
+          <div class="calendar-input" id="cal-display">
             <span>📅</span> <span id="cal-text">เลือกวันที่</span>
           </div>
           <div class="calendar-popup" id="cal-popup">
             <div class="cal-header">
-              <button class="cal-nav" onclick="calNav(-1)">◀</button>
+              <button class="cal-nav" id="cal-prev">◀</button>
               <span class="cal-month-year" id="cal-month-label"></span>
-              <button class="cal-nav" onclick="calNav(1)">▶</button>
+              <button class="cal-nav" id="cal-next">▶</button>
             </div>
             <div class="cal-grid" id="cal-grid"></div>
           </div>
         </div>
       </div>
       <div class="bulk-btns">
-        <button class="btn-bulk all-submit" onclick="bulkSet('submit')">✅ ส่งทั้งหมด</button>
-        <button class="btn-bulk all-not" onclick="bulkSet('not')">❌ ไม่ส่งทั้งหมด</button>
-        <button class="btn-bulk all-clear" onclick="bulkSet('clear')">🔄 ไม่เลือกทั้งหมด</button>
+        <button class="btn-bulk all-submit" id="bulk-submit">✅ ส่งทั้งหมด</button>
+        <button class="btn-bulk all-not" id="bulk-not">❌ ไม่ส่งทั้งหมด</button>
+        <button class="btn-bulk all-clear" id="bulk-clear">🔄 ไม่เลือกทั้งหมด</button>
       </div>
       <div id="student-list-submit"></div>
-      <button class="btn-save" onclick="saveSubmission()">💾 บันทึก</button>
+      <button class="btn-save" id="btn-save-submission">💾 บันทึก</button>
     </div>
   </div>
 </div>
@@ -664,9 +664,9 @@
   <div class="section-title"><span class="icon">📊</span> สรุปการส่งงาน</div>
   <div class="card">
     <div class="selector-row" id="grade-btns-summary">
-      <button class="btn-grade" onclick="selectGrade('summary',4,this)">🌸 ป.4</button>
-      <button class="btn-grade" onclick="selectGrade('summary',5,this)">🌼 ป.5</button>
-      <button class="btn-grade" onclick="selectGrade('summary',6,this)">🌺 ป.6</button>
+      <button class="btn-grade" data-section="summary" data-grade="4">🌸 ป.4</button>
+      <button class="btn-grade" data-section="summary" data-grade="5">🌼 ป.5</button>
+      <button class="btn-grade" data-section="summary" data-grade="6">🌺 ป.6</button>
     </div>
     <div class="selector-row" id="subject-btns-summary" style="display:none"></div>
     <div id="summary-content"></div>
@@ -678,15 +678,15 @@
   <div class="section-title"><span class="icon">✏️</span> แก้ไขรายชื่อนักเรียน</div>
   <div class="card">
     <div class="selector-row" id="grade-btns-edit">
-      <button class="btn-grade" onclick="selectGrade('edit',4,this)">🌸 ป.4</button>
-      <button class="btn-grade" onclick="selectGrade('edit',5,this)">🌼 ป.5</button>
-      <button class="btn-grade" onclick="selectGrade('edit',6,this)">🌺 ป.6</button>
+      <button class="btn-grade" data-section="edit" data-grade="4">🌸 ป.4</button>
+      <button class="btn-grade" data-section="edit" data-grade="5">🌼 ป.5</button>
+      <button class="btn-grade" data-section="edit" data-grade="6">🌺 ป.6</button>
     </div>
     <div id="edit-content" style="display:none">
       <p style="font-size:0.88rem;color:var(--text-light);margin-bottom:10px;">🖊️ แก้ไขรายชื่อได้เลย (หนึ่งบรรทัดต่อหนึ่งชื่อ)</p>
       <textarea class="edit-textarea" id="edit-textarea"></textarea>
       <br><br>
-      <button class="btn-save" onclick="saveNames()">💾 บันทึกรายชื่อ</button>
+      <button class="btn-save" id="btn-save-names">💾 บันทึกรายชื่อ</button>
     </div>
   </div>
 </div>
@@ -703,12 +703,10 @@
       <h3 id="modal-task-title"></h3>
     </div>
     <div class="modal-body">
-      <!-- ข้อมูลชิ้นงาน + ปุ่มแก้ไข -->
       <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:12px;">
         <div class="task-detail-card" id="modal-task-info" style="flex:1;margin-bottom:0;"></div>
-        <button class="btn-edit-info" onclick="toggleEditInfo()">✏️ แก้ไข</button>
+        <button class="btn-edit-info" id="btn-toggle-edit-info">✏️ แก้ไข</button>
       </div>
-      <!-- ฟอร์มแก้ไขชื่อ/note -->
       <div class="edit-info-form" id="edit-info-form">
         <div class="form-group">
           <label>🏷️ ชื่อชิ้นงาน</label>
@@ -718,17 +716,16 @@
           <label>🗒️ หมายเหตุ</label>
           <input type="text" id="edit-task-note-input" placeholder="หมายเหตุ (เว้นว่างได้)">
         </div>
-        <button class="btn-modal-save" style="margin-top:8px;" onclick="saveTaskInfo()">💾 บันทึกชื่องาน</button>
+        <button class="btn-modal-save" id="btn-save-task-info" style="margin-top:8px;">💾 บันทึกชื่องาน</button>
       </div>
-      <!-- รายชื่อนักเรียน -->
       <p style="font-size:0.88rem;color:var(--text-light);margin-bottom:8px;">สถานะการส่งงาน:</p>
       <div id="modal-task-students"></div>
     </div>
     <div class="modal-footer">
       <div class="modal-btns">
-        <button class="btn-modal-cancel" onclick="closeModal('modal-task')">ปิด</button>
-        <button class="btn-modal-save" onclick="saveTaskEdit()">💾 บันทึกสถานะ</button>
-        <button class="btn-modal-confirm" onclick="confirmDeleteTask()">🗑️ ลบชิ้นงาน</button>
+        <button class="btn-modal-cancel" id="btn-close-task">ปิด</button>
+        <button class="btn-modal-save" id="btn-save-task-edit">💾 บันทึกสถานะ</button>
+        <button class="btn-modal-confirm" id="btn-confirm-delete">🗑️ ลบชิ้นงาน</button>
       </div>
     </div>
   </div>
@@ -749,8 +746,8 @@
     </div>
     <div class="modal-footer">
       <div class="modal-btns">
-        <button class="btn-modal-cancel" onclick="closeModal('modal-quick')">ยกเลิก</button>
-        <button class="btn-modal-save" onclick="saveQuickSubmit()">💾 บันทึก</button>
+        <button class="btn-modal-cancel" id="btn-close-quick">ยกเลิก</button>
+        <button class="btn-modal-save" id="btn-save-quick">💾 บันทึก</button>
       </div>
     </div>
   </div>
@@ -767,8 +764,8 @@
     </div>
     <div class="modal-footer">
       <div class="modal-btns">
-        <button class="btn-modal-cancel" onclick="closeModal('modal-delete')">ยกเลิก</button>
-        <button class="btn-modal-confirm" onclick="doDeleteTask()">ลบเลย</button>
+        <button class="btn-modal-cancel" id="btn-close-delete">ยกเลิก</button>
+        <button class="btn-modal-confirm" id="btn-do-delete">ลบเลย</button>
       </div>
     </div>
   </div>
@@ -784,21 +781,19 @@
 <!-- TOAST -->
 <div class="toast" id="toast">✅ บันทึกสำเร็จ!</div>
 
-<!-- Firebase SDK -->
-<script type="module">
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getFirestore, doc, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
-
-const firebaseConfig = {
+<!-- Firebase SDK (compat version - ใช้ได้ทั้ง local และ online) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({
   apiKey: "AIzaSyDQKHFHtZp0Dpxn-Lun_8vVSSckmPKk8T0",
   authDomain: "student-check-b528b.firebaseapp.com",
   projectId: "student-check-b528b",
   storageBucket: "student-check-b528b.firebasestorage.app",
   messagingSenderId: "583737514275",
   appId: "1:583737514275:web:63ea1c10484793dbba5496"
-};
-const app = initializeApp(firebaseConfig);
-const db  = getFirestore(app);
+});
+const db = firebase.firestore();
 
 // ============================
 // HELPERS
@@ -856,16 +851,18 @@ let cache = {};
 async function fsGet(key) {
   if (cache[key] !== undefined) return cache[key];
   try {
-    const snap = await getDoc(doc(db, 'data', key));
-    const val = snap.exists() ? snap.data().value : null;
+    const snap = await db.collection('data').doc(key).get();
+    const val = snap.exists ? snap.data().value : null;
     cache[key] = val;
     return val;
-  } catch(e) { return null; }
+  } catch(e) { console.error('fsGet error', e); return null; }
 }
 
 async function fsSet(key, value) {
   cache[key] = value;
-  await setDoc(doc(db, 'data', key), { value });
+  try {
+    await db.collection('data').doc(key).set({ value });
+  } catch(e) { console.error('fsSet error', e); }
 }
 
 async function getStudents(grade) {
@@ -998,13 +995,13 @@ function renderSubjects(section) {
     const btn = document.createElement('button');
     btn.className = 'btn-subject';
     btn.textContent = SUBJECT_ICONS[i] + ' ' + s;
-    btn.onclick = () => {
+    btn.addEventListener('click', () => {
       wrap.querySelectorAll('.btn-subject').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       state[section].subject = s;
       if (section === 'submit') renderSubmitForm();
       else if (section === 'summary') renderSummary();
-    };
+    });
     wrap.appendChild(btn);
   });
 }
@@ -1033,11 +1030,14 @@ async function renderStudentList() {
     row.innerHTML = `
       <span class="status-num">${idx + 1}.</span>
       <span class="student-name">${name}</span>
-      <button class="btn-submit-s" id="btn-s-${idx}" onclick="setStatus(${idx},'submit','${name.replace(/'/g,"\\'")}')">✅ ส่ง</button>
-      <button class="btn-notsubmit-s" id="btn-n-${idx}" onclick="setStatus(${idx},'not','${name.replace(/'/g,"\\'")}')">❌ ไม่ส่ง</button>
-      <button class="btn-clear-s" id="btn-c-${idx}" onclick="setStatus(${idx},'clear','${name.replace(/'/g,"\\'")}')">–</button>
+      <button class="btn-submit-s" id="btn-s-${idx}">✅ ส่ง</button>
+      <button class="btn-notsubmit-s" id="btn-n-${idx}">❌ ไม่ส่ง</button>
+      <button class="btn-clear-s" id="btn-c-${idx}">–</button>
     `;
     wrap.appendChild(row);
+    row.querySelector(`#btn-s-${idx}`).addEventListener('click', () => setStatus(idx, 'submit', name));
+    row.querySelector(`#btn-n-${idx}`).addEventListener('click', () => setStatus(idx, 'not', name));
+    row.querySelector(`#btn-c-${idx}`).addEventListener('click', () => setStatus(idx, 'clear', name));
     highlightStatus(idx, currentTaskStatuses[name] || null);
   });
 }
@@ -1112,7 +1112,7 @@ async function renderSummary() {
   let html = '<div class="summary-table-wrap"><table class="summary-table"><thead><tr>';
   html += '<th>ชื่อ-สกุล</th>';
   tasks.forEach(t => {
-    html += `<th class="clickable-header" onclick="openTaskDetail(${t.id})" title="คลิกเพื่อดู/แก้ไข">📄 ${t.name}</th>`;
+    html += `<th class="clickable-header" data-taskid="${t.id}" title="คลิกเพื่อดู/แก้ไข">📄 ${t.name}</th>`;
   });
   html += '<th>รวม</th><th>%</th><th>คะแนนเก็บ<br><small>(เต็ม 80)</small></th></tr></thead><tbody>';
 
@@ -1155,10 +1155,10 @@ async function renderSummary() {
     missers.sort((a, b) => b.missing.length - a.missing.length);
     missers.forEach((m, i) => {
       const taskChips = m.missing.map(t =>
-        `<span class="task-chip" onclick="openQuickSubmit(${t.id},'${m.name.replace(/'/g,"\\'")}',event)">${t.name}</span>`
+        `<span class="task-chip" data-taskid="${t.id}" data-student="${m.name.replace(/"/g,'&quot;')}">${t.name}</span>`
       ).join('');
       html += `
-        <div class="missing-item" onclick="toggleMissing(${i})">
+        <div class="missing-item" data-missingidx="${i}">
           <div class="missing-header">
             <span class="missing-name">👤 ${m.name}</span>
             <span class="missing-count">ยังไม่ส่ง ${m.missing.length} งาน</span>
@@ -1169,6 +1169,20 @@ async function renderSummary() {
   }
   html += '</div>';
   wrap.innerHTML = html;
+
+  // Event delegation for dynamic elements
+  wrap.querySelectorAll('.clickable-header[data-taskid]').forEach(th => {
+    th.addEventListener('click', () => openTaskDetail(parseInt(th.dataset.taskid)));
+  });
+  wrap.querySelectorAll('.missing-item[data-missingidx]').forEach(item => {
+    item.addEventListener('click', () => toggleMissing(parseInt(item.dataset.missingidx)));
+  });
+  wrap.querySelectorAll('.task-chip[data-taskid]').forEach(chip => {
+    chip.addEventListener('click', e => {
+      e.stopPropagation();
+      openQuickSubmit(parseInt(chip.dataset.taskid), chip.dataset.student);
+    });
+  });
 }
 
 function toggleMissing(i) {
@@ -1195,9 +1209,9 @@ async function openTaskDetail(taskId) {
       <div class="student-row">
         <span class="status-num">${idx+1}.</span>
         <span class="student-name">${name}</span>
-        <button class="btn-submit-s" id="mts-s-${idx}" onclick="setModalStatus(${idx},'submit','${name.replace(/'/g,"\\'")}',${taskId})">✅ ส่ง</button>
-        <button class="btn-notsubmit-s" id="mts-n-${idx}" onclick="setModalStatus(${idx},'not','${name.replace(/'/g,"\\'")}',${taskId})">❌ ไม่ส่ง</button>
-        <button class="btn-clear-s" id="mts-c-${idx}" onclick="setModalStatus(${idx},'clear','${name.replace(/'/g,"\\'")}',${taskId})">–</button>
+        <button class="btn-submit-s" id="mts-s-${idx}">✅ ส่ง</button>
+        <button class="btn-notsubmit-s" id="mts-n-${idx}">❌ ไม่ส่ง</button>
+        <button class="btn-clear-s" id="mts-c-${idx}">–</button>
       </div>`;
   });
   document.getElementById('modal-task-students').innerHTML = stuHtml;
@@ -1205,8 +1219,10 @@ async function openTaskDetail(taskId) {
     const st = task.statuses && task.statuses[name];
     const s = document.getElementById('mts-s-' + idx);
     const n = document.getElementById('mts-n-' + idx);
-    if (s) s.classList.toggle('active', st === 'submit');
-    if (n) n.classList.toggle('active', st === 'not');
+    if (s) { s.classList.toggle('active', st === 'submit'); s.addEventListener('click', () => setModalStatus(idx, 'submit', name, taskId)); }
+    if (n) { n.classList.toggle('active', st === 'not');    n.addEventListener('click', () => setModalStatus(idx, 'not',    name, taskId)); }
+    const c = document.getElementById('mts-c-' + idx);
+    if (c) c.addEventListener('click', () => setModalStatus(idx, 'clear', name, taskId));
   });
   openModal('modal-task');
 }
@@ -1283,8 +1299,7 @@ async function doDeleteTask() {
   showToast('🗑️ ลบชิ้นงานสำเร็จ');
 }
 
-async function openQuickSubmit(taskId, studentName, e) {
-  e.stopPropagation();
+async function openQuickSubmit(taskId, studentName) {
   const { grade, subject } = state.summary;
   const tasks = await getTasks(grade, subject);
   const task = tasks.find(t => t.id === taskId);
@@ -1379,6 +1394,58 @@ document.querySelectorAll('.nav a').forEach(a => {
     }
   });
 });
+
+// ============================
+// BIND ALL STATIC BUTTONS
+// ============================
+function bindEvents() {
+  // Grade buttons
+  document.querySelectorAll('.btn-grade').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const section = btn.dataset.section;
+      const grade = parseInt(btn.dataset.grade);
+      selectGrade(section, grade, btn);
+    });
+  });
+
+  // Calendar
+  document.getElementById('cal-display').addEventListener('click', toggleCal);
+  document.getElementById('cal-prev').addEventListener('click', () => calNav(-1));
+  document.getElementById('cal-next').addEventListener('click', () => calNav(1));
+
+  // Bulk
+  document.getElementById('bulk-submit').addEventListener('click', () => bulkSet('submit'));
+  document.getElementById('bulk-not').addEventListener('click', () => bulkSet('not'));
+  document.getElementById('bulk-clear').addEventListener('click', () => bulkSet('clear'));
+
+  // Save submission
+  document.getElementById('btn-save-submission').addEventListener('click', saveSubmission);
+
+  // Save names
+  document.getElementById('btn-save-names').addEventListener('click', saveNames);
+
+  // Modal task buttons
+  document.getElementById('btn-toggle-edit-info').addEventListener('click', toggleEditInfo);
+  document.getElementById('btn-save-task-info').addEventListener('click', saveTaskInfo);
+  document.getElementById('btn-close-task').addEventListener('click', () => closeModal('modal-task'));
+  document.getElementById('btn-save-task-edit').addEventListener('click', saveTaskEdit);
+  document.getElementById('btn-confirm-delete').addEventListener('click', confirmDeleteTask);
+
+  // Modal quick
+  document.getElementById('btn-close-quick').addEventListener('click', () => closeModal('modal-quick'));
+  document.getElementById('btn-save-quick').addEventListener('click', saveQuickSubmit);
+
+  // Modal delete
+  document.getElementById('btn-close-delete').addEventListener('click', () => closeModal('modal-delete'));
+  document.getElementById('btn-do-delete').addEventListener('click', doDeleteTask);
+
+  // Close modals on overlay click
+  document.querySelectorAll('.modal-overlay').forEach(m => {
+    m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+  });
+}
+
+bindEvents();
 </script>
 </body>
 </html>
