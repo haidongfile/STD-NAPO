@@ -599,12 +599,22 @@ async function openTaskDetail(taskId){
     var bs=document.createElement('button');bs.className='btn-submit-s';bs.textContent='✅ ส่ง';
     var bn=document.createElement('button');bn.className='btn-notsubmit-s';bn.textContent='❌ ไม่ส่ง';
     var bc=document.createElement('button');bc.className='btn-clear-s';bc.textContent='–';
+    var ni=document.createElement('input');ni.type='text';ni.placeholder='หมายเหตุ...';
+    ni.style.cssText='flex:1;min-width:80px;border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-family:Itim,cursive;font-size:0.82rem;background:var(--pink-light);outline:none;color:var(--text)';
+    var existNote=getNoteVal(task.statuses&&task.statuses[name]);
+    if(existNote)ni.value=existNote;
+    ni.addEventListener('input',function(){
+      if(!task.statuses)task.statuses={};
+      var cur=task.statuses[name];
+      var curSt=getStatusVal(cur);
+      task.statuses[name]={status:curSt||null,note:ni.value};
+    });
     var st=getStatusVal(task.statuses&&task.statuses[name]);
     bs.classList.toggle('active',st==='submit');bn.classList.toggle('active',st==='not');
     bs.addEventListener('click',function(){setModalStatus(task,name,bs,bn,'submit',grade,subj);});
     bn.addEventListener('click',function(){setModalStatus(task,name,bs,bn,'not',grade,subj);});
     bc.addEventListener('click',function(){setModalStatus(task,name,bs,bn,'clear',grade,subj);});
-    btns.appendChild(bs);btns.appendChild(bn);btns.appendChild(bc);
+    btns.appendChild(bs);btns.appendChild(bn);btns.appendChild(bc);btns.appendChild(ni);
     row.appendChild(top);row.appendChild(btns);wrap.appendChild(row);
   });
   openModal('modal-task');
@@ -620,6 +630,20 @@ async function setModalStatus(task,name,bs,bn,status,grade,subj){
   var oldNote=getNoteVal(task.statuses[name]);
   task.statuses[name]=status==='clear'?null:{status:status,note:oldNote};
   bs.classList.toggle('active',status==='submit');bn.classList.toggle('active',status==='not');
+  // อัปเดต ni ถ้ามี
+  var wrap=document.getElementById('modal-task-students');
+  var rows=wrap.querySelectorAll('.student-row');
+  rows.forEach(function(row){
+    var nm=row.querySelector('.student-name');
+    if(nm&&nm.textContent===name){
+      var ni=row.querySelector('input[type=text]');
+      if(ni) ni.addEventListener('input',function(){
+        if(!task.statuses)task.statuses={};
+        var curSt=getStatusVal(task.statuses[name]);
+        task.statuses[name]={status:curSt||null,note:ni.value};
+      });
+    }
+  });
   try{var tasks=await getTasks(grade,subj);var idx=tasks.findIndex(function(t){return t.id===task.id;});if(idx>=0)tasks[idx]=task;await saveTasks(grade,subj,tasks);}
   catch(e){console.error('setModalStatus:',e);}
 }
