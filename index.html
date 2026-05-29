@@ -5,607 +5,125 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ระบบบันทึกการส่งงาน</title>
 <link href="https://fonts.googleapis.com/css2?family=Itim&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <style>
-  :root {
-    --pink: #FFB7C5;
-    --pink-light: #FFE4EC;
-    --pink-dark: #FF8FAB;
-    --purple: #C9B8FF;
-    --purple-light: #EDE8FF;
-    --blue: #A8D8FF;
-    --blue-light: #E0F2FF;
-    --green: #A8E6C3;
-    --green-dark: #4CAF85;
-    --green-btn: #69C99B;
-    --red: #FFB3B3;
-    --red-dark: #E06B6B;
-    --yellow: #FFE8A3;
-    --yellow-dark: #F5C842;
-    --bg: #FFF5F8;
-    --card: #FFFFFF;
-    --text: #5C4A5A;
-    --text-light: #9B8A98;
-    --border: #F0D9E8;
-    --shadow: 0 4px 20px rgba(200,150,180,0.15);
-    --radius: 18px;
-    --radius-sm: 10px;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: 'Itim', cursive;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-  }
-  /* ===== HEADER ===== */
-  .header {
-    background: linear-gradient(135deg, #FFB7C5 0%, #C9B8FF 50%, #A8D8FF 100%);
-    padding: 18px 20px 0;
-    text-align: center;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    box-shadow: 0 4px 20px rgba(200,150,180,0.3);
-  }
-  .header h1 {
-    font-size: 1.6rem;
-    color: #fff;
-    text-shadow: 0 2px 8px rgba(150,100,130,0.3);
-    margin-bottom: 4px;
-  }
-  .header h1 span { font-size: 1.3rem; }
-  .nav {
-    display: flex;
-    justify-content: center;
-    gap: 8px;
-    padding: 10px 0 0;
-    flex-wrap: wrap;
-  }
-  .nav a {
-    background: rgba(255,255,255,0.7);
-    color: var(--text);
-    padding: 7px 16px;
-    border-radius: 30px 30px 0 0;
-    text-decoration: none;
-    font-size: 0.92rem;
-    transition: all 0.2s;
-    backdrop-filter: blur(6px);
-  }
-  .nav a:hover { background: rgba(255,255,255,0.95); transform: translateY(-2px); }
-  /* ===== SECTIONS ===== */
-  .section {
-    max-width: 960px;
-    margin: 0 auto;
-    padding: 30px 16px;
-  }
-  .section-title {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 1.4rem;
-    color: var(--text);
-    margin-bottom: 22px;
-    padding-bottom: 12px;
-    border-bottom: 3px dotted var(--pink);
-  }
-  .section-title .icon { font-size: 1.6rem; }
-  /* ===== CARD ===== */
-  .card {
-    background: var(--card);
-    border-radius: var(--radius);
-    padding: 22px;
-    box-shadow: var(--shadow);
-    border: 2px solid var(--border);
-    margin-bottom: 18px;
-  }
-  /* ===== SELECTORS ===== */
-  .selector-row {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-    margin-bottom: 18px;
-  }
-  .btn-grade, .btn-subject {
-    background: var(--purple-light);
-    border: 2px solid var(--purple);
-    color: var(--text);
-    padding: 8px 20px;
-    border-radius: 30px;
-    cursor: pointer;
-    font-family: 'Itim', cursive;
-    font-size: 0.95rem;
-    transition: all 0.2s;
-  }
-  .btn-grade:hover, .btn-subject:hover { background: var(--purple); }
-  .btn-grade.active, .btn-subject.active {
-    background: linear-gradient(135deg, var(--pink-dark), var(--purple));
-    color: #fff;
-    border-color: transparent;
-    box-shadow: 0 4px 12px rgba(200,150,200,0.4);
-  }
-  /* ===== FORM ===== */
-  .form-group { margin-bottom: 14px; }
-  .form-group label {
-    display: block;
-    font-size: 0.9rem;
-    color: var(--text-light);
-    margin-bottom: 6px;
-  }
-  .form-group input, .form-group textarea {
-    width: 100%;
-    border: 2px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 10px 14px;
-    font-family: 'Itim', cursive;
-    font-size: 1rem;
-    color: var(--text);
-    background: var(--pink-light);
-    transition: border-color 0.2s;
-    outline: none;
-  }
-  .form-group input:focus, .form-group textarea:focus { border-color: var(--pink-dark); }
-  /* ===== CALENDAR ===== */
-  .calendar-wrap { position: relative; display: inline-block; }
-  .calendar-input {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: var(--yellow);
-    border: 2px solid var(--yellow-dark);
-    border-radius: var(--radius-sm);
-    padding: 8px 14px;
-    cursor: pointer;
-    font-family: 'Itim', cursive;
-    font-size: 0.95rem;
-    color: var(--text);
-    min-width: 200px;
-    user-select: none;
-  }
-  .calendar-popup {
-    position: absolute;
-    top: calc(100% + 8px);
-    left: 0;
-    background: #fff;
-    border: 2px solid var(--pink);
-    border-radius: var(--radius);
-    padding: 16px;
-    box-shadow: 0 8px 30px rgba(200,150,180,0.3);
-    z-index: 200;
-    width: 280px;
-    display: none;
-  }
-  .calendar-popup.open { display: block; }
-  .cal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-  }
-  .cal-nav {
-    background: var(--pink-light);
-    border: none;
-    border-radius: 50%;
-    width: 30px; height: 30px;
-    cursor: pointer;
-    font-size: 1rem;
-    display: flex; align-items: center; justify-content: center;
-    transition: background 0.2s;
-  }
-  .cal-nav:hover { background: var(--pink); }
-  .cal-month-year { font-size: 0.95rem; color: var(--text); }
-  .cal-grid {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 3px;
-  }
-  .cal-day-name {
-    text-align: center;
-    font-size: 0.72rem;
-    color: var(--text-light);
-    padding: 2px;
-  }
-  .cal-day {
-    text-align: center;
-    padding: 5px 2px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 0.82rem;
-    transition: background 0.15s;
-  }
-  .cal-day:hover { background: var(--pink-light); }
-  .cal-day.selected { background: var(--pink-dark); color: #fff; }
-  .cal-day.today { font-weight: bold; color: var(--pink-dark); }
-  .cal-day.other-month { color: var(--border); }
-  .cal-day.empty { cursor: default; }
-  /* ===== STUDENT TABLE ===== */
-  .bulk-btns {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 12px;
-    flex-wrap: wrap;
-  }
-  .btn-bulk {
-    padding: 7px 16px;
-    border-radius: 30px;
-    border: none;
-    cursor: pointer;
-    font-family: 'Itim', cursive;
-    font-size: 0.88rem;
-    transition: all 0.2s;
-  }
-  .btn-bulk.all-submit { background: var(--green); color: #2a6e4a; }
-  .btn-bulk.all-not { background: var(--red); color: #8b2020; }
-  .btn-bulk.all-clear { background: var(--yellow); color: #7a6200; }
-  .btn-bulk:hover { transform: scale(1.04); }
-  .student-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 12px;
-    border-radius: var(--radius-sm);
-    margin-bottom: 6px;
-    background: var(--pink-light);
-    transition: background 0.15s;
-  }
-  .student-row:hover { background: #ffd6e6; }
-  .student-name { flex: 1; font-size: 0.95rem; }
-  .status-num { font-size: 0.8rem; color: var(--text-light); min-width: 24px; }
-  .btn-submit-s, .btn-notsubmit-s, .btn-clear-s {
-    border: 2px solid transparent;
-    border-radius: 20px;
-    padding: 6px 14px;
-    cursor: pointer;
-    font-family: 'Itim', cursive;
-    font-size: 0.85rem;
-    transition: all 0.2s;
-    opacity: 0.3;
-  }
-  /* ส่ง — จางก่อน, เข้มเมื่อ active */
-  .btn-submit-s {
-    background: var(--green-btn);
-    color: #fff;
-    border-color: var(--green-btn);
-  }
-  .btn-submit-s:hover { opacity: 0.65; }
-  .btn-submit-s.active {
-    opacity: 1;
-    background: var(--green-dark);
-    border-color: var(--green-dark);
-    box-shadow: 0 0 0 3px #69C99B55, 0 3px 10px rgba(76,175,133,0.4);
-    transform: scale(1.06);
-  }
-  /* ไม่ส่ง — จางก่อน, เข้มเมื่อ active */
-  .btn-notsubmit-s {
-    background: var(--red-dark);
-    color: #fff;
-    border-color: var(--red-dark);
-  }
-  .btn-notsubmit-s:hover { opacity: 0.65; }
-  .btn-notsubmit-s.active {
-    opacity: 1;
-    background: #c05050;
-    border-color: #c05050;
-    box-shadow: 0 0 0 3px #E06B6B55, 0 3px 10px rgba(224,107,107,0.4);
-    transform: scale(1.06);
-  }
-  /* ปุ่ม – ล้างเลือก */
-  .btn-clear-s {
-    background: #e8e0ec;
-    color: #b0a0b8;
-    border-color: #ddd;
-    opacity: 0.5;
-  }
-  .btn-clear-s:hover { opacity: 0.9; background: #d8cce4; }
-  /* ===== MAIN BUTTONS ===== */
-  .btn-save {
-    background: linear-gradient(135deg, var(--pink-dark), var(--purple));
-    color: #fff;
-    border: none;
-    border-radius: 30px;
-    padding: 12px 34px;
-    font-family: 'Itim', cursive;
-    font-size: 1.05rem;
-    cursor: pointer;
-    box-shadow: 0 4px 14px rgba(200,130,180,0.4);
-    transition: all 0.2s;
-    margin-top: 8px;
-  }
-  .btn-save:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(200,130,180,0.5); }
-  /* ===== SUMMARY TABLE ===== */
-  .summary-table-wrap { overflow-x: auto; border-radius: var(--radius); }
-  .summary-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.88rem;
-  }
-  .summary-table th {
-    background: linear-gradient(135deg, var(--pink-light), var(--purple-light));
-    padding: 10px 12px;
-    text-align: center;
-    border: 1px solid var(--border);
-    white-space: nowrap;
-    position: sticky;
-    top: 0;
-  }
-  .summary-table th.clickable-header {
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-  .summary-table th.clickable-header:hover { background: var(--pink); }
-  .summary-table td {
-    padding: 9px 12px;
-    border: 1px solid #f0e0ea;
-    text-align: center;
-    background: #fff;
-  }
-  .summary-table tr:nth-child(even) td { background: var(--pink-light); }
-  .summary-table td.name-col { text-align: left; white-space: nowrap; }
-  .icon-submit, .icon-not, .icon-none {
-    display: inline-block;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    vertical-align: middle;
-  }
-  .icon-submit { background: var(--green-dark); box-shadow: 0 2px 6px rgba(76,175,133,0.45); }
-  .icon-not { background: var(--red-dark); box-shadow: 0 2px 6px rgba(224,107,107,0.45); }
-  .icon-none { background: #ddd; }
-  .td-total { font-weight: bold; color: var(--text); }
-  .td-pct { font-weight: bold; }
-  .td-score { font-weight: bold; }
-  /* ===== MISSING STUDENTS ===== */
-  .missing-list { margin-top: 20px; }
-  .missing-item {
-    background: var(--pink-light);
-    border: 2px solid var(--pink);
-    border-radius: var(--radius-sm);
-    padding: 12px 16px;
-    margin-bottom: 10px;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  .missing-item:hover { border-color: var(--pink-dark); background: var(--pink); }
-  .missing-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-  }
-  .missing-name { font-size: 1rem; flex: 1; }
-  .missing-count {
-    background: var(--red-dark);
-    color: #fff;
-    border-radius: 20px;
-    padding: 2px 12px;
-    font-size: 0.85rem;
-  }
-  .missing-tasks {
-    margin-top: 10px;
-    padding-top: 10px;
-    border-top: 1px dashed var(--pink-dark);
-    display: none;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-  .missing-tasks.open { display: flex; }
-  .task-chip {
-    background: #fff;
-    border: 2px solid var(--red);
-    border-radius: 20px;
-    padding: 4px 14px;
-    font-size: 0.83rem;
-    cursor: pointer;
-    transition: all 0.15s;
-    color: var(--text);
-  }
-  .task-chip:hover { background: var(--red); color: #8b2020; }
-  /* ===== EDIT NAMES ===== */
-  .edit-textarea {
-    width: 100%;
-    min-height: 200px;
-    border: 2px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 14px;
-    font-family: 'Itim', cursive;
-    font-size: 0.95rem;
-    color: var(--text);
-    background: var(--pink-light);
-    line-height: 1.8;
-    resize: vertical;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-  .edit-textarea:focus { border-color: var(--pink-dark); }
-  /* ===== MODAL ===== */
-  .modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(100,50,80,0.4);
-    backdrop-filter: blur(4px);
-    z-index: 500;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    padding: 12px;
-    overflow-y: auto;
-  }
-  .modal-overlay.open { display: flex; }
-  .modal {
-    background: #fff;
-    border-radius: var(--radius);
-    box-shadow: 0 12px 40px rgba(150,80,120,0.3);
-    max-width: 500px;
-    width: 100%;
-    border: 3px solid var(--pink);
-    animation: popIn 0.25s ease;
-    display: flex;
-    flex-direction: column;
-    max-height: calc(100vh - 24px);
-    overflow: hidden;
-  }
-  .modal-header {
-    padding: 20px 22px 14px;
-    border-bottom: 2px dashed var(--border);
-    flex-shrink: 0;
-  }
-  .modal-header h3 { font-size: 1.15rem; margin: 0; }
-  .modal-body {
-    padding: 16px 22px;
-    overflow-y: auto;
-    flex: 1;
-  }
-  .modal-footer {
-    padding: 14px 22px;
-    border-top: 2px dashed var(--border);
-    flex-shrink: 0;
-  }
-  @keyframes popIn {
-    from { transform: scale(0.85); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
-  }
-  .modal h3 { font-size: 1.15rem; margin-bottom: 10px; }
-  .modal p { font-size: 0.9rem; color: var(--text-light); margin-bottom: 16px; line-height: 1.6; }
-  .modal-btns { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; }
-  /* ปุ่มแก้ไขข้อมูลชิ้นงาน */
-  .btn-edit-info {
-    background: var(--yellow);
-    border: 2px solid var(--yellow-dark);
-    border-radius: 20px;
-    padding: 5px 14px;
-    font-family: 'Itim', cursive;
-    font-size: 0.85rem;
-    cursor: pointer;
-    transition: all 0.15s;
-    color: var(--text);
-    margin-left: 8px;
-  }
-  .btn-edit-info:hover { background: var(--yellow-dark); }
-  .edit-info-form {
-    background: var(--yellow);
-    border: 2px solid var(--yellow-dark);
-    border-radius: var(--radius-sm);
-    padding: 14px;
-    margin-bottom: 14px;
-    display: none;
-  }
-  .edit-info-form.open { display: block; }
-  .edit-info-form .form-group { margin-bottom: 10px; }
-  .edit-info-form .form-group:last-child { margin-bottom: 0; }
-  .edit-info-form input {
-    width: 100%;
-    border: 2px solid var(--yellow-dark);
-    border-radius: 8px;
-    padding: 8px 12px;
-    font-family: 'Itim', cursive;
-    font-size: 0.9rem;
-    background: #fffae0;
-    outline: none;
-  }
-  .edit-info-form label { font-size: 0.82rem; color: var(--text-light); display: block; margin-bottom: 4px; }
-  .btn-modal-cancel {
-    background: #eee;
-    border: none;
-    border-radius: 20px;
-    padding: 8px 20px;
-    cursor: pointer;
-    font-family: 'Itim', cursive;
-  }
-  .btn-modal-confirm {
-    background: var(--red-dark);
-    color: #fff;
-    border: none;
-    border-radius: 20px;
-    padding: 8px 20px;
-    cursor: pointer;
-    font-family: 'Itim', cursive;
-  }
-  .btn-modal-save {
-    background: linear-gradient(135deg, var(--green-btn), var(--green-dark));
-    color: #fff;
-    border: none;
-    border-radius: 20px;
-    padding: 8px 20px;
-    cursor: pointer;
-    font-family: 'Itim', cursive;
-  }
-  /* ===== TOAST ===== */
-  .toast {
-    position: fixed;
-    bottom: 24px;
-    left: 50%;
-    transform: translateX(-50%) translateY(60px);
-    background: linear-gradient(135deg, var(--green-btn), var(--green-dark));
-    color: #fff;
-    padding: 12px 28px;
-    border-radius: 30px;
-    font-size: 1rem;
-    box-shadow: 0 6px 20px rgba(80,180,130,0.4);
-    z-index: 1000;
-    transition: transform 0.3s ease;
-  }
-  .toast.show { transform: translateX(-50%) translateY(0); }
-  /* ===== FOOTER ===== */
-  .footer {
-    text-align: center;
-    padding: 20px;
-    color: var(--text-light);
-    font-size: 0.88rem;
-    border-top: 2px dotted var(--pink);
-    margin-top: 10px;
-  }
-  /* ===== TASK DETAIL ===== */
-  .task-detail-card {
-    background: var(--purple-light);
-    border: 2px solid var(--purple);
-    border-radius: var(--radius-sm);
-    padding: 16px;
-    margin-bottom: 18px;
-  }
-  .task-detail-card p { font-size: 0.9rem; margin-bottom: 6px; }
-  .badge {
-    display: inline-block;
-    background: var(--pink);
-    color: var(--text);
-    border-radius: 20px;
-    padding: 3px 12px;
-    font-size: 0.82rem;
-    margin-right: 6px;
-  }
-  .divider {
-    border: none;
-    border-top: 2px dashed var(--border);
-    margin: 24px 0;
-  }
-  .empty-msg {
-    text-align: center;
-    color: var(--text-light);
-    padding: 24px;
-    font-size: 0.95rem;
-  }
-  select.styled-select {
-    border: 2px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 8px 14px;
-    font-family: 'Itim', cursive;
-    font-size: 0.95rem;
-    background: var(--pink-light);
-    color: var(--text);
-    outline: none;
-    cursor: pointer;
-  }
-  /* Responsive */
-  @media (max-width: 600px) {
-    .header h1 { font-size: 1.2rem; }
-    .nav a { font-size: 0.82rem; padding: 6px 12px; }
-    .summary-table { font-size: 0.78rem; }
-  }
+:root{--pink:#FFB7C5;--pink-light:#FFE4EC;--pink-dark:#FF8FAB;--purple:#C9B8FF;--purple-light:#EDE8FF;--green:#A8E6C3;--green-dark:#4CAF85;--green-btn:#69C99B;--red:#FFB3B3;--red-dark:#E06B6B;--yellow:#FFE8A3;--yellow-dark:#F5C842;--bg:#FFF5F8;--card:#FFFFFF;--text:#5C4A5A;--text-light:#9B8A98;--border:#F0D9E8;--shadow:0 4px 20px rgba(200,150,180,0.15);--radius:18px;--radius-sm:10px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Itim',cursive;background:var(--bg);color:var(--text);min-height:100vh}
+.header{background:linear-gradient(135deg,#FFB7C5 0%,#C9B8FF 50%,#A8D8FF 100%);padding:18px 20px 0;text-align:center;position:sticky;top:0;z-index:100;box-shadow:0 4px 20px rgba(200,150,180,0.3)}
+.header h1{font-size:1.6rem;color:#fff;text-shadow:0 2px 8px rgba(150,100,130,0.3);margin-bottom:4px}
+.nav{display:flex;justify-content:center;gap:8px;padding:10px 0 0;flex-wrap:wrap}
+.nav a{background:rgba(255,255,255,0.7);color:var(--text);padding:7px 16px;border-radius:30px 30px 0 0;text-decoration:none;font-size:0.92rem;transition:all 0.2s}
+.nav a:hover{background:rgba(255,255,255,0.95);transform:translateY(-2px)}
+.section{max-width:960px;margin:0 auto;padding:30px 16px}
+.section-title{display:flex;align-items:center;gap:10px;font-size:1.4rem;margin-bottom:22px;padding-bottom:12px;border-bottom:3px dotted var(--pink)}
+.card{background:var(--card);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow);border:2px solid var(--border);margin-bottom:18px}
+.selector-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.btn-grade,.btn-subject{background:var(--purple-light);border:2px solid var(--purple);color:var(--text);padding:8px 20px;border-radius:30px;cursor:pointer;font-family:'Itim',cursive;font-size:0.95rem;transition:all 0.2s}
+.btn-grade:hover,.btn-subject:hover{background:var(--purple)}
+.btn-grade.active,.btn-subject.active{background:linear-gradient(135deg,var(--pink-dark),var(--purple));color:#fff;border-color:transparent;box-shadow:0 4px 12px rgba(200,150,200,0.4)}
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:0.9rem;color:var(--text-light);margin-bottom:6px}
+.form-group input,.form-group textarea{width:100%;border:2px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;font-family:'Itim',cursive;font-size:1rem;color:var(--text);background:var(--pink-light);outline:none;transition:border-color 0.2s}
+.form-group input:focus,.form-group textarea:focus{border-color:var(--pink-dark)}
+.calendar-wrap{position:relative;display:inline-block}
+.calendar-input{display:flex;align-items:center;gap:8px;background:var(--yellow);border:2px solid var(--yellow-dark);border-radius:var(--radius-sm);padding:8px 14px;cursor:pointer;font-family:'Itim',cursive;font-size:0.95rem;color:var(--text);min-width:200px;user-select:none}
+.calendar-popup{position:absolute;top:calc(100% + 8px);left:0;background:#fff;border:2px solid var(--pink);border-radius:var(--radius);padding:16px;box-shadow:0 8px 30px rgba(200,150,180,0.3);z-index:200;width:280px;display:none}
+.calendar-popup.open{display:block}
+.cal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.cal-nav{background:var(--pink-light);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;transition:background 0.2s}
+.cal-nav:hover{background:var(--pink)}
+.cal-month-year{font-size:0.95rem;color:var(--text)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal-day-name{text-align:center;font-size:0.72rem;color:var(--text-light);padding:2px}
+.cal-day{text-align:center;padding:5px 2px;border-radius:8px;cursor:pointer;font-size:0.82rem;transition:background 0.15s}
+.cal-day:hover{background:var(--pink-light)}
+.cal-day.selected{background:var(--pink-dark);color:#fff}
+.cal-day.today{font-weight:bold;color:var(--pink-dark)}
+.cal-day.empty{cursor:default}
+.bulk-btns{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.btn-bulk{padding:7px 16px;border-radius:30px;border:none;cursor:pointer;font-family:'Itim',cursive;font-size:0.88rem;transition:all 0.2s}
+.btn-bulk.all-submit{background:var(--green);color:#2a6e4a}
+.btn-bulk.all-not{background:var(--red);color:#8b2020}
+.btn-bulk.all-clear{background:var(--yellow);color:#7a6200}
+.btn-bulk:hover{transform:scale(1.04)}
+.student-row{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:var(--radius-sm);margin-bottom:6px;background:var(--pink-light);transition:background 0.15s}
+.student-row:hover{background:#ffd6e6}
+.student-name{flex:1;font-size:0.95rem}
+.status-num{font-size:0.8rem;color:var(--text-light);min-width:24px}
+.btn-submit-s,.btn-notsubmit-s,.btn-clear-s{border:2px solid transparent;border-radius:20px;padding:6px 14px;cursor:pointer;font-family:'Itim',cursive;font-size:0.85rem;transition:all 0.2s;opacity:0.3}
+.btn-submit-s{background:var(--green-btn);color:#fff;border-color:var(--green-btn)}
+.btn-submit-s:hover{opacity:0.65}
+.btn-submit-s.active{opacity:1;background:var(--green-dark);border-color:var(--green-dark);box-shadow:0 0 0 3px #69C99B55,0 3px 10px rgba(76,175,133,0.4);transform:scale(1.06)}
+.btn-notsubmit-s{background:var(--red-dark);color:#fff;border-color:var(--red-dark)}
+.btn-notsubmit-s:hover{opacity:0.65}
+.btn-notsubmit-s.active{opacity:1;background:#c05050;border-color:#c05050;box-shadow:0 0 0 3px #E06B6B55,0 3px 10px rgba(224,107,107,0.4);transform:scale(1.06)}
+.btn-clear-s{background:#e8e0ec;color:#b0a0b8;border-color:#ddd;opacity:0.5}
+.btn-clear-s:hover{opacity:0.9;background:#d8cce4}
+.btn-save{background:linear-gradient(135deg,var(--pink-dark),var(--purple));color:#fff;border:none;border-radius:30px;padding:12px 34px;font-family:'Itim',cursive;font-size:1.05rem;cursor:pointer;box-shadow:0 4px 14px rgba(200,130,180,0.4);transition:all 0.2s;margin-top:8px}
+.btn-save:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(200,130,180,0.5)}
+.summary-table-wrap{overflow-x:auto;border-radius:var(--radius)}
+.summary-table{width:100%;border-collapse:collapse;font-size:0.88rem}
+.summary-table th{background:linear-gradient(135deg,var(--pink-light),var(--purple-light));padding:10px 12px;text-align:center;border:1px solid var(--border);white-space:nowrap}
+.summary-table th.clickable-header{cursor:pointer;transition:background 0.15s}
+.summary-table th.clickable-header:hover{background:var(--pink)}
+.summary-table td{padding:9px 12px;border:1px solid #f0e0ea;text-align:center;background:#fff}
+.summary-table tr:nth-child(even) td{background:var(--pink-light)}
+.summary-table td.name-col{text-align:left;white-space:nowrap}
+.icon-submit,.icon-not,.icon-none{display:inline-block;width:18px;height:18px;border-radius:50%;vertical-align:middle}
+.icon-submit{background:var(--green-dark);box-shadow:0 2px 6px rgba(76,175,133,0.45)}
+.icon-not{background:var(--red-dark);box-shadow:0 2px 6px rgba(224,107,107,0.45)}
+.icon-none{background:#ddd}
+.td-total,.td-pct,.td-score{font-weight:bold}
+.missing-list{margin-top:20px}
+.missing-item{background:var(--pink-light);border:2px solid var(--pink);border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:10px;cursor:pointer;transition:all 0.2s}
+.missing-item:hover{border-color:var(--pink-dark);background:var(--pink)}
+.missing-header{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.missing-name{font-size:1rem;flex:1}
+.missing-count{background:var(--red-dark);color:#fff;border-radius:20px;padding:2px 12px;font-size:0.85rem}
+.missing-tasks{margin-top:10px;padding-top:10px;border-top:1px dashed var(--pink-dark);display:none;flex-wrap:wrap;gap:8px}
+.missing-tasks.open{display:flex}
+.task-chip{background:#fff;border:2px solid var(--red);border-radius:20px;padding:4px 14px;font-size:0.83rem;cursor:pointer;transition:all 0.15s;color:var(--text)}
+.task-chip:hover{background:var(--red);color:#8b2020}
+.edit-textarea{width:100%;min-height:200px;border:2px solid var(--border);border-radius:var(--radius-sm);padding:14px;font-family:'Itim',cursive;font-size:0.95rem;color:var(--text);background:var(--pink-light);line-height:1.8;resize:vertical;outline:none;transition:border-color 0.2s}
+.edit-textarea:focus{border-color:var(--pink-dark)}
+.modal-overlay{position:fixed;inset:0;background:rgba(100,50,80,0.4);backdrop-filter:blur(4px);z-index:500;display:none;align-items:center;justify-content:center;padding:12px;overflow-y:auto}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;border-radius:var(--radius);box-shadow:0 12px 40px rgba(150,80,120,0.3);max-width:500px;width:100%;border:3px solid var(--pink);animation:popIn 0.25s ease;display:flex;flex-direction:column;max-height:calc(100vh - 24px);overflow:hidden}
+.modal-header{padding:20px 22px 14px;border-bottom:2px dashed var(--border);flex-shrink:0}
+.modal-header h3{font-size:1.15rem;margin:0}
+.modal-body{padding:16px 22px;overflow-y:auto;flex:1}
+.modal-footer{padding:14px 22px;border-top:2px dashed var(--border);flex-shrink:0}
+@keyframes popIn{from{transform:scale(0.85);opacity:0}to{transform:scale(1);opacity:1}}
+.modal-btns{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+.btn-edit-info{background:var(--yellow);border:2px solid var(--yellow-dark);border-radius:20px;padding:5px 14px;font-family:'Itim',cursive;font-size:0.85rem;cursor:pointer;transition:all 0.15s;color:var(--text);margin-left:8px}
+.btn-edit-info:hover{background:var(--yellow-dark)}
+.edit-info-form{background:var(--yellow);border:2px solid var(--yellow-dark);border-radius:var(--radius-sm);padding:14px;margin-bottom:14px;display:none}
+.edit-info-form.open{display:block}
+.edit-info-form input{width:100%;border:2px solid var(--yellow-dark);border-radius:8px;padding:8px 12px;font-family:'Itim',cursive;font-size:0.9rem;background:#fffae0;outline:none;margin-top:4px}
+.edit-info-form label{font-size:0.82rem;color:var(--text-light);display:block;margin-bottom:4px;margin-top:8px}
+.btn-modal-cancel{background:#eee;border:none;border-radius:20px;padding:8px 20px;cursor:pointer;font-family:'Itim',cursive}
+.btn-modal-confirm{background:var(--red-dark);color:#fff;border:none;border-radius:20px;padding:8px 20px;cursor:pointer;font-family:'Itim',cursive}
+.btn-modal-save{background:linear-gradient(135deg,var(--green-btn),var(--green-dark));color:#fff;border:none;border-radius:20px;padding:8px 20px;cursor:pointer;font-family:'Itim',cursive}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(60px);background:linear-gradient(135deg,var(--green-btn),var(--green-dark));color:#fff;padding:12px 28px;border-radius:30px;font-size:1rem;box-shadow:0 6px 20px rgba(80,180,130,0.4);z-index:1000;transition:transform 0.3s ease}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.footer{text-align:center;padding:20px;color:var(--text-light);font-size:0.88rem;border-top:2px dotted var(--pink);margin-top:10px}
+.task-detail-card{background:var(--purple-light);border:2px solid var(--purple);border-radius:var(--radius-sm);padding:16px;margin-bottom:18px}
+.task-detail-card p{font-size:0.9rem;margin-bottom:6px}
+.badge{display:inline-block;background:var(--pink);color:var(--text);border-radius:20px;padding:3px 12px;font-size:0.82rem;margin-right:6px}
+.divider{border:none;border-top:2px dashed var(--border);margin:24px 0}
+.empty-msg{text-align:center;color:var(--text-light);padding:24px;font-size:0.95rem}
+#loading-overlay{display:none;position:fixed;inset:0;background:rgba(255,240,248,0.75);backdrop-filter:blur(3px);z-index:900;align-items:center;justify-content:center;flex-direction:column;gap:12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner{width:48px;height:48px;border:5px solid var(--pink);border-top-color:var(--purple);border-radius:50%;animation:spin 0.8s linear infinite}
+@media(max-width:600px){.header h1{font-size:1.2rem}.nav a{font-size:0.82rem;padding:6px 12px}.summary-table{font-size:0.78rem}}
 </style>
 </head>
 <body>
 
-<!-- HEADER -->
 <div class="header">
-  <h1><span>📚</span> ระบบบันทึกการส่งงาน</h1>
+  <h1>📚 ระบบบันทึกการส่งงาน</h1>
   <nav class="nav">
     <a href="#sec-submit">📝 บันทึกการส่งงาน</a>
     <a href="#sec-summary">📊 สรุปการส่งงาน</a>
@@ -613,15 +131,10 @@
   </nav>
 </div>
 
-<!-- SECTION 1: ส่งงาน -->
 <div class="section" id="sec-submit">
-  <div class="section-title"><span class="icon">📝</span> บันทึกการส่งงาน</div>
+  <div class="section-title"><span>📝</span> บันทึกการส่งงาน</div>
   <div class="card">
-    <div class="selector-row" id="grade-btns-submit">
-      <button class="btn-grade" data-section="submit" data-grade="4">🌸 ป.4</button>
-      <button class="btn-grade" data-section="submit" data-grade="5">🌼 ป.5</button>
-      <button class="btn-grade" data-section="submit" data-grade="6">🌺 ป.6</button>
-    </div>
+    <div class="selector-row" id="grade-btns-submit"></div>
     <div class="selector-row" id="subject-btns-submit" style="display:none"></div>
     <div id="submit-form" style="display:none">
       <div class="form-group">
@@ -635,9 +148,7 @@
       <div class="form-group">
         <label>📅 วันที่สั่งงาน</label>
         <div class="calendar-wrap">
-          <div class="calendar-input" id="cal-display">
-            <span>📅</span> <span id="cal-text">เลือกวันที่</span>
-          </div>
+          <div class="calendar-input" id="cal-display">📅 <span id="cal-text">เลือกวันที่</span></div>
           <div class="calendar-popup" id="cal-popup">
             <div class="cal-header">
               <button class="cal-nav" id="cal-prev">◀</button>
@@ -654,34 +165,25 @@
         <button class="btn-bulk all-clear" id="bulk-clear">🔄 ไม่เลือกทั้งหมด</button>
       </div>
       <div id="student-list-submit"></div>
+      <br>
       <button class="btn-save" id="btn-save-submission">💾 บันทึก</button>
     </div>
   </div>
 </div>
 
-<!-- SECTION 2: สรุป -->
 <div class="section" id="sec-summary">
-  <div class="section-title"><span class="icon">📊</span> สรุปการส่งงาน</div>
+  <div class="section-title"><span>📊</span> สรุปการส่งงาน</div>
   <div class="card">
-    <div class="selector-row" id="grade-btns-summary">
-      <button class="btn-grade" data-section="summary" data-grade="4">🌸 ป.4</button>
-      <button class="btn-grade" data-section="summary" data-grade="5">🌼 ป.5</button>
-      <button class="btn-grade" data-section="summary" data-grade="6">🌺 ป.6</button>
-    </div>
+    <div class="selector-row" id="grade-btns-summary"></div>
     <div class="selector-row" id="subject-btns-summary" style="display:none"></div>
     <div id="summary-content"></div>
   </div>
 </div>
 
-<!-- SECTION 3: แก้ไขรายชื่อ -->
 <div class="section" id="sec-edit">
-  <div class="section-title"><span class="icon">✏️</span> แก้ไขรายชื่อนักเรียน</div>
+  <div class="section-title"><span>✏️</span> แก้ไขรายชื่อนักเรียน</div>
   <div class="card">
-    <div class="selector-row" id="grade-btns-edit">
-      <button class="btn-grade" data-section="edit" data-grade="4">🌸 ป.4</button>
-      <button class="btn-grade" data-section="edit" data-grade="5">🌼 ป.5</button>
-      <button class="btn-grade" data-section="edit" data-grade="6">🌺 ป.6</button>
-    </div>
+    <div class="selector-row" id="grade-btns-edit"></div>
     <div id="edit-content" style="display:none">
       <p style="font-size:0.88rem;color:var(--text-light);margin-bottom:10px;">🖊️ แก้ไขรายชื่อได้เลย (หนึ่งบรรทัดต่อหนึ่งชื่อ)</p>
       <textarea class="edit-textarea" id="edit-textarea"></textarea>
@@ -691,32 +193,24 @@
   </div>
 </div>
 
-<!-- FOOTER -->
-<div class="footer">
-  🌸 ระบบบันทึกการส่งงาน โรงเรียนบ้านนาโพธิ์อ่างสร้างหิน 2569 🌸
-</div>
+<div class="footer">🌸 ระบบบันทึกการส่งงาน โรงเรียนบ้านนาโพธิ์อ่างสร้างหิน 2569 🌸</div>
 
-<!-- MODAL: Task Detail / Edit -->
+<!-- MODAL: Task Detail -->
 <div class="modal-overlay" id="modal-task">
   <div class="modal">
-    <div class="modal-header">
-      <h3 id="modal-task-title"></h3>
-    </div>
+    <div class="modal-header"><h3 id="modal-task-title"></h3></div>
     <div class="modal-body">
       <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:12px;">
         <div class="task-detail-card" id="modal-task-info" style="flex:1;margin-bottom:0;"></div>
         <button class="btn-edit-info" id="btn-toggle-edit-info">✏️ แก้ไข</button>
       </div>
       <div class="edit-info-form" id="edit-info-form">
-        <div class="form-group">
-          <label>🏷️ ชื่อชิ้นงาน</label>
-          <input type="text" id="edit-task-name-input" placeholder="ชื่อชิ้นงาน">
-        </div>
-        <div class="form-group">
-          <label>🗒️ หมายเหตุ</label>
-          <input type="text" id="edit-task-note-input" placeholder="หมายเหตุ (เว้นว่างได้)">
-        </div>
-        <button class="btn-modal-save" id="btn-save-task-info" style="margin-top:8px;">💾 บันทึกชื่องาน</button>
+        <label>🏷️ ชื่อชิ้นงาน</label>
+        <input type="text" id="edit-task-name-input">
+        <label>🗒️ หมายเหตุ</label>
+        <input type="text" id="edit-task-note-input">
+        <br><br>
+        <button class="btn-modal-save" id="btn-save-task-info">💾 บันทึกชื่องาน</button>
       </div>
       <p style="font-size:0.88rem;color:var(--text-light);margin-bottom:8px;">สถานะการส่งงาน:</p>
       <div id="modal-task-students"></div>
@@ -731,14 +225,12 @@
   </div>
 </div>
 
-<!-- MODAL: Quick Submit from missing -->
+<!-- MODAL: Quick Submit -->
 <div class="modal-overlay" id="modal-quick">
   <div class="modal">
-    <div class="modal-header">
-      <h3 id="modal-quick-title">✅ บันทึกการส่งงาน</h3>
-    </div>
+    <div class="modal-header"><h3>✅ บันทึกการส่งงาน</h3></div>
     <div class="modal-body">
-      <p id="modal-quick-info"></p>
+      <p id="modal-quick-info" style="white-space:pre-line;margin-bottom:12px;"></p>
       <div class="form-group">
         <label>🗒️ หมายเหตุ (เว้นว่างได้)</label>
         <input type="text" id="modal-quick-note" placeholder="หมายเหตุเพิ่มเติม">
@@ -756,12 +248,8 @@
 <!-- MODAL: Confirm Delete -->
 <div class="modal-overlay" id="modal-delete">
   <div class="modal">
-    <div class="modal-header">
-      <h3>🗑️ ยืนยันการลบ</h3>
-    </div>
-    <div class="modal-body">
-      <p id="modal-delete-msg"></p>
-    </div>
+    <div class="modal-header"><h3>🗑️ ยืนยันการลบ</h3></div>
+    <div class="modal-body"><p id="modal-delete-msg"></p></div>
     <div class="modal-footer">
       <div class="modal-btns">
         <button class="btn-modal-cancel" id="btn-close-delete">ยกเลิก</button>
@@ -771,681 +259,527 @@
   </div>
 </div>
 
-<!-- LOADING OVERLAY -->
-<div id="loading-overlay" style="display:none;position:fixed;inset:0;background:rgba(255,240,248,0.7);backdrop-filter:blur(3px);z-index:900;align-items:center;justify-content:center;flex-direction:column;gap:12px;">
-  <div style="width:48px;height:48px;border:5px solid var(--pink);border-top-color:var(--purple);border-radius:50%;animation:spin 0.8s linear infinite;"></div>
-  <div style="font-family:'Itim',cursive;color:var(--text);font-size:1rem;">กำลังโหลด...</div>
+<!-- Loading -->
+<div id="loading-overlay">
+  <div class="spinner"></div>
+  <div style="font-family:'Itim',cursive;color:var(--text)">กำลังโหลด...</div>
 </div>
-<style>@keyframes spin { to { transform: rotate(360deg); } }</style>
 
-<!-- TOAST -->
-<div class="toast" id="toast">✅ บันทึกสำเร็จ!</div>
+<div class="toast" id="toast"></div>
 
-<!-- Firebase SDK (compat version - ใช้ได้ทั้ง local และ online) -->
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script>
-firebase.initializeApp({
-  apiKey: "AIzaSyDQKHFHtZp0Dpxn-Lun_8vVSSckmPKk8T0",
-  authDomain: "student-check-b528b.firebaseapp.com",
-  projectId: "student-check-b528b",
-  storageBucket: "student-check-b528b.firebasestorage.app",
-  messagingSenderId: "583737514275",
-  appId: "1:583737514275:web:63ea1c10484793dbba5496"
-});
-const db = firebase.firestore();
+// =====================
+// FIREBASE INIT
+// =====================
+var db = null;
+var useFirebase = false;
 
-// ============================
-// HELPERS
-// ============================
-function pctColor(pct) {
-  pct = Math.max(0, Math.min(100, pct));
-  let r, g, b;
-  if (pct <= 50) {
-    const t = pct / 50;
-    r = Math.round(224 + (245 - 224) * t);
-    g = Math.round(107 + (200 - 107) * t);
-    b = Math.round(107 + (66  - 107) * t);
-  } else {
-    const t = (pct - 50) / 50;
-    r = Math.round(245 + (76  - 245) * t);
-    g = Math.round(200 + (175 - 200) * t);
-    b = Math.round(66  + (133 - 66)  * t);
-  }
-  return `rgb(${r},${g},${b})`;
+try {
+  firebase.initializeApp({
+    apiKey: "AIzaSyDQKHFHtZp0Dpxn-Lun_8vVSSckmPKk8T0",
+    authDomain: "student-check-b528b.firebaseapp.com",
+    projectId: "student-check-b528b",
+    storageBucket: "student-check-b528b.firebasestorage.app",
+    messagingSenderId: "583737514275",
+    appId: "1:583737514275:web:63ea1c10484793dbba5496"
+  });
+  db = firebase.firestore();
+  useFirebase = true;
+} catch(e) {
+  console.log('Firebase ไม่พร้อม ใช้ localStorage แทน');
 }
 
-// ============================
-// DATA
-// ============================
-const SUBJECTS = ['ภาษาอังกฤษพื้นฐาน', 'ภาษาอังกฤษเพิ่มเติม', 'สังคมศึกษา'];
-const SUBJECT_ICONS = ['🇬🇧', '📖', '🌏'];
-const DEFAULT_STUDENTS = {
-  4: [
-    'เด็กชายกิตติชัย ชิดนอก','เด็กชายพาธี หนองแคน','เด็กหญิงกวินตรา จูมมาระ',
-    'เด็กหญิงณัฐธิดา คุตนาม','เด็กหญิงประภัสสรา เนระวงค์','เด็กหญิงเพ็ญนภา สายเนตร',
-    'เด็กหญิงเมธาพร มลศิลป์','เด็กหญิงลลิลลักษ์ กลางประพันธ์','เด็กหญิงวรรณนิภา ธรรมกุล',
-    'เด็กหญิงกันต์กมล คำนนท์','เด็กหญิงสิริณพร นิลเพชร'
-  ],
-  5: [
-    'เด็กชายธนกฤต ไชยศรี','เด็กชายอภิชาติ ยืนยง','เด็กชายปาฏิหารย์ บุตรการ',
-    'เด็กชายพชรพล เงาทอง','เด็กชายรัชชานนท์ หลักโสม','เด็กชายศิริวรรธน์ นิยมคุณ',
-    'เด็กหญิงกัลยกร ดีดวงพันธ์','เด็กหญิงออมสิน รักบุญ','เด็กหญิงกนกวรรณ ดวงแก้ว',
-    'เด็กหญิงณัฎฐนันท์ ชูรัตน์'
-  ],
-  6: [
-    'เด็กชายบุณยวีร์ กาลบุญ','เด็กชายวัชรากร สร้อยสิงห์','เด็กชายจักกฤษณ์ ศรีเมืองช้าง',
-    'เด็กชายอรรคพล สินสุพรรณ์','เด็กชายอิทธิพัทธ์ ดันไธสง','เด็กชายวัชรพงษ์ อุทรังษ์',
-    'เด็กหญิงนภสร หลักโสม','เด็กหญิงศุจีภรณ์ สุวเพชร','เด็กหญิงอาภาสิริ จันทรังษี',
-    'เด็กหญิงณัฐธิดา หนองแคน','เด็กหญิงหฤทัย อ้มสมเสพย์','เด็กหญิงอริสรา อุนาพันธ์',
-    'เด็กหญิงสิริวิมล นิลเพชร','เด็กหญิงกัญญาพัชร์ แซ่เตีย','เด็กหญิงกัญญาพัชร หนองแคน'
-  ]
-};
+// =====================
+// STORAGE LAYER
+// cache = ข้อมูลใน memory
+// =====================
+var cache = {};
 
-// ============================
-// FIRESTORE HELPERS
-// cache ข้อมูลไว้ใน memory เพื่อไม่ต้อง fetch ซ้ำทุกครั้ง
-// ============================
-let cache = {};
+function showLoading(v) {
+  document.getElementById('loading-overlay').style.display = v ? 'flex' : 'none';
+}
 
-async function fsGet(key) {
+async function dbGet(key) {
   if (cache[key] !== undefined) return cache[key];
+  if (useFirebase) {
+    try {
+      var snap = await db.collection('data').doc(key).get();
+      var val = snap.exists ? snap.data().value : null;
+      cache[key] = val;
+      return val;
+    } catch(e) { console.error(e); }
+  }
   try {
-    const snap = await db.collection('data').doc(key).get();
-    const val = snap.exists ? snap.data().value : null;
-    cache[key] = val;
-    return val;
-  } catch(e) { console.error('fsGet error', e); return null; }
+    var raw = localStorage.getItem('hw_' + key);
+    var v = raw ? JSON.parse(raw) : null;
+    cache[key] = v;
+    return v;
+  } catch(e) { return null; }
 }
 
-async function fsSet(key, value) {
+async function dbSet(key, value) {
   cache[key] = value;
-  try {
-    await db.collection('data').doc(key).set({ value });
-  } catch(e) { console.error('fsSet error', e); }
+  if (useFirebase) {
+    try { await db.collection('data').doc(key).set({ value: value }); return; } catch(e) { console.error(e); }
+  }
+  try { localStorage.setItem('hw_' + key, JSON.stringify(value)); } catch(e) {}
 }
 
-async function getStudents(grade) {
-  const v = await fsGet('students_' + grade);
-  return v || DEFAULT_STUDENTS[grade] || [];
-}
-
-async function getTasks(grade, subject) {
-  const v = await fsGet('tasks_' + grade + '_' + subject);
-  return v || [];
-}
-
-async function saveTasks(grade, subject, tasks) {
-  await fsSet('tasks_' + grade + '_' + subject, tasks);
-}
-
-// แสดง loading overlay ระหว่างรอ Firestore
-function showLoading(show) {
-  document.getElementById('loading-overlay').style.display = show ? 'flex' : 'none';
-}
-
-// ============================
-// STATE
-// ============================
-let state = {
-  submit: { grade: null, subject: null },
-  summary: { grade: null, subject: null },
-  edit: { grade: null }
+// =====================
+// CONSTANTS
+// =====================
+var SUBJECTS = ['ภาษาอังกฤษพื้นฐาน','ภาษาอังกฤษเพิ่มเติม','สังคมศึกษา'];
+var SUBJECT_ICONS = ['🇬🇧','📖','🌏'];
+var GRADE_ICONS = { 4:'🌸', 5:'🌼', 6:'🌺' };
+var DEFAULT_STUDENTS = {
+  4:['เด็กชายกิตติชัย ชิดนอก','เด็กชายพาธี หนองแคน','เด็กหญิงกวินตรา จูมมาระ','เด็กหญิงณัฐธิดา คุตนาม','เด็กหญิงประภัสสรา เนระวงค์','เด็กหญิงเพ็ญนภา สายเนตร','เด็กหญิงเมธาพร มลศิลป์','เด็กหญิงลลิลลักษ์ กลางประพันธ์','เด็กหญิงวรรณนิภา ธรรมกุล','เด็กหญิงกันต์กมล คำนนท์','เด็กหญิงสิริณพร นิลเพชร'],
+  5:['เด็กชายธนกฤต ไชยศรี','เด็กชายอภิชาติ ยืนยง','เด็กชายปาฏิหารย์ บุตรการ','เด็กชายพชรพล เงาทอง','เด็กชายรัชชานนท์ หลักโสม','เด็กชายศิริวรรธน์ นิยมคุณ','เด็กหญิงกัลยกร ดีดวงพันธ์','เด็กหญิงออมสิน รักบุญ','เด็กหญิงกนกวรรณ ดวงแก้ว','เด็กหญิงณัฎฐนันท์ ชูรัตน์'],
+  6:['เด็กชายบุณยวีร์ กาลบุญ','เด็กชายวัชรากร สร้อยสิงห์','เด็กชายจักกฤษณ์ ศรีเมืองช้าง','เด็กชายอรรคพล สินสุพรรณ์','เด็กชายอิทธิพัทธ์ ดันไธสง','เด็กชายวัชรพงษ์ อุทรังษ์','เด็กหญิงนภสร หลักโสม','เด็กหญิงศุจีภรณ์ สุวเพชร','เด็กหญิงอาภาสิริ จันทรังษี','เด็กหญิงณัฐธิดา หนองแคน','เด็กหญิงหฤทัย อ้มสมเสพย์','เด็กหญิงอริสรา อุนาพันธ์','เด็กหญิงสิริวิมล นิลเพชร','เด็กหญิงกัญญาพัชร์ แซ่เตีย','เด็กหญิงกัญญาพัชร หนองแคน']
 };
-let currentTaskStatuses = {}; // studentName -> 'submit'|'not'|null
-let calDate = { year: 0, month: 0, day: 0 };
-let editingTaskId = null;
-let deletingTaskId = null;
-let quickData = null; // { grade, subject, taskId, studentName }
 
-// ============================
-// INIT CALENDAR (Buddhist Era)
-// ============================
-const THAI_MONTHS = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน',
-  'กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
-const DAY_NAMES = ['อา','จ','อ','พ','พฤ','ศ','ส'];
+async function getStudents(grade) { return (await dbGet('students_'+grade)) || DEFAULT_STUDENTS[grade] || []; }
+async function getTasks(grade, subj) { return (await dbGet('tasks_'+grade+'_'+subj)) || []; }
+async function saveTasks(grade, subj, tasks) { await dbSet('tasks_'+grade+'_'+subj, tasks); }
+
+// =====================
+// STATE
+// =====================
+var state = { submit:{grade:null,subj:null}, summary:{grade:null,subj:null}, edit:{grade:null} };
+var curStatuses = {};
+var editingTaskId = null;
+var deletingTaskId = null;
+var quickData = null;
+
+// =====================
+// CALENDAR
+// =====================
+var THAI_MONTHS = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+var DAY_NAMES = ['อา','จ','อ','พ','พฤ','ศ','ส'];
+var calDate = { year:0, month:0, day:0 };
 
 function initCal() {
-  const now = new Date();
-  calDate.year = now.getFullYear() + 543;
+  var now = new Date();
+  calDate.year = now.getFullYear()+543;
   calDate.month = now.getMonth();
   calDate.day = 0;
   renderCal();
 }
-function toggleCal() {
-  const p = document.getElementById('cal-popup');
-  p.classList.toggle('open');
-}
+function toggleCal() { document.getElementById('cal-popup').classList.toggle('open'); }
 function calNav(dir) {
   calDate.month += dir;
-  if (calDate.month > 11) { calDate.month = 0; calDate.year++; }
-  if (calDate.month < 0) { calDate.month = 11; calDate.year--; }
+  if (calDate.month>11){calDate.month=0;calDate.year++;}
+  if (calDate.month<0){calDate.month=11;calDate.year--;}
   renderCal();
 }
 function renderCal() {
-  const label = document.getElementById('cal-month-label');
-  label.textContent = THAI_MONTHS[calDate.month] + ' ' + calDate.year;
-  const grid = document.getElementById('cal-grid');
+  document.getElementById('cal-month-label').textContent = THAI_MONTHS[calDate.month]+' '+calDate.year;
+  var grid = document.getElementById('cal-grid');
   grid.innerHTML = '';
-  DAY_NAMES.forEach(d => {
-    const el = document.createElement('div');
-    el.className = 'cal-day-name'; el.textContent = d;
-    grid.appendChild(el);
-  });
-  const gregYear = calDate.year - 543;
-  const firstDay = new Date(gregYear, calDate.month, 1).getDay();
-  const daysInMonth = new Date(gregYear, calDate.month + 1, 0).getDate();
-  const today = new Date();
-  for (let i = 0; i < firstDay; i++) {
-    const el = document.createElement('div');
-    el.className = 'cal-day empty';
-    grid.appendChild(el);
-  }
-  for (let d = 1; d <= daysInMonth; d++) {
-    const el = document.createElement('div');
-    el.className = 'cal-day';
-    if (today.getDate() === d && today.getMonth() === calDate.month && today.getFullYear() === gregYear) {
-      el.classList.add('today');
-    }
-    if (calDate.day === d) el.classList.add('selected');
-    el.textContent = d;
-    el.onclick = () => {
-      calDate.day = d;
-      document.getElementById('cal-text').textContent = d + ' ' + THAI_MONTHS[calDate.month] + ' ' + calDate.year;
+  DAY_NAMES.forEach(function(d){ var e=document.createElement('div'); e.className='cal-day-name'; e.textContent=d; grid.appendChild(e); });
+  var gy = calDate.year-543;
+  var first = new Date(gy, calDate.month, 1).getDay();
+  var days = new Date(gy, calDate.month+1, 0).getDate();
+  var today = new Date();
+  for(var i=0;i<first;i++){ var e=document.createElement('div'); e.className='cal-day empty'; grid.appendChild(e); }
+  for(var d=1;d<=days;d++){
+    var e=document.createElement('div'); e.className='cal-day';
+    if(today.getDate()===d&&today.getMonth()===calDate.month&&today.getFullYear()===gy) e.classList.add('today');
+    if(calDate.day===d) e.classList.add('selected');
+    e.textContent=d;
+    (function(day){ e.addEventListener('click',function(){
+      calDate.day=day;
+      document.getElementById('cal-text').textContent=day+' '+THAI_MONTHS[calDate.month]+' '+calDate.year;
       document.getElementById('cal-popup').classList.remove('open');
       renderCal();
-    };
-    grid.appendChild(el);
+    }); })(d);
+    grid.appendChild(e);
   }
 }
-document.addEventListener('click', e => {
-  const popup = document.getElementById('cal-popup');
-  const wrap = document.querySelector('.calendar-wrap');
-  if (wrap && !wrap.contains(e.target)) popup.classList.remove('open');
-});
-initCal();
 
-// ============================
-// SECTION SELECTORS
-// ============================
+// =====================
+// UTIL
+// =====================
+function pctColor(pct) {
+  pct = Math.max(0,Math.min(100,pct));
+  var r,g,b;
+  if(pct<=50){var t=pct/50;r=Math.round(224+(245-224)*t);g=Math.round(107+(200-107)*t);b=Math.round(107+(66-107)*t);}
+  else{var t=(pct-50)/50;r=Math.round(245+(76-245)*t);g=Math.round(200+(175-200)*t);b=Math.round(66+(133-66)*t);}
+  return 'rgb('+r+','+g+','+b+')';
+}
+var toastTimer;
+function showToast(msg,bg) {
+  var t=document.getElementById('toast');
+  t.textContent=msg;
+  t.style.background=bg||'linear-gradient(135deg,var(--green-btn),var(--green-dark))';
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(function(){t.classList.remove('show');},2500);
+}
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+
+// =====================
+// GRADE BUTTONS INIT
+// =====================
+function buildGradeBtns(section) {
+  var wrap = document.getElementById('grade-btns-'+section);
+  [4,5,6].forEach(function(g){
+    var btn=document.createElement('button');
+    btn.className='btn-grade';
+    btn.textContent=GRADE_ICONS[g]+' ป.'+g;
+    btn.addEventListener('click',function(){ selectGrade(section,g,btn); });
+    wrap.appendChild(btn);
+  });
+}
+
 function selectGrade(section, grade, btn) {
   state[section].grade = grade;
-  document.querySelectorAll('#grade-btns-' + section + ' .btn-grade')
-    .forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('#grade-btns-'+section+' .btn-grade').forEach(function(b){b.classList.remove('active');});
   btn.classList.add('active');
-
-  if (section === 'submit') {
-    state.submit.subject = null;
-    renderSubjects('submit');
-    document.getElementById('submit-form').style.display = 'none';
-  } else if (section === 'summary') {
-    state.summary.subject = null;
-    renderSubjects('summary');
-    document.getElementById('summary-content').innerHTML = '';
-  } else if (section === 'edit') {
+  if(section==='submit'){
+    state.submit.subj=null;
+    buildSubjectBtns('submit');
+    document.getElementById('submit-form').style.display='none';
+  } else if(section==='summary'){
+    state.summary.subj=null;
+    buildSubjectBtns('summary');
+    document.getElementById('summary-content').innerHTML='';
+  } else if(section==='edit'){
     renderEdit();
   }
 }
 
-function renderSubjects(section) {
-  const wrap = document.getElementById('subject-btns-' + section);
-  wrap.style.display = 'flex';
-  wrap.innerHTML = '';
-  SUBJECTS.forEach((s, i) => {
-    const btn = document.createElement('button');
-    btn.className = 'btn-subject';
-    btn.textContent = SUBJECT_ICONS[i] + ' ' + s;
-    btn.addEventListener('click', () => {
-      wrap.querySelectorAll('.btn-subject').forEach(b => b.classList.remove('active'));
+function buildSubjectBtns(section) {
+  var wrap=document.getElementById('subject-btns-'+section);
+  wrap.style.display='flex';
+  wrap.innerHTML='';
+  SUBJECTS.forEach(function(s,i){
+    var btn=document.createElement('button');
+    btn.className='btn-subject';
+    btn.textContent=SUBJECT_ICONS[i]+' '+s;
+    btn.addEventListener('click',function(){
+      wrap.querySelectorAll('.btn-subject').forEach(function(b){b.classList.remove('active');});
       btn.classList.add('active');
-      state[section].subject = s;
-      if (section === 'submit') renderSubmitForm();
-      else if (section === 'summary') renderSummary();
+      state[section].subj=s;
+      if(section==='submit') renderSubmitForm();
+      else renderSummary();
     });
     wrap.appendChild(btn);
   });
 }
 
-// ============================
-// SECTION 1: SUBMIT FORM
-// ============================
+// =====================
+// SECTION 1: SUBMIT
+// =====================
 async function renderSubmitForm() {
-  const { grade, subject } = state.submit;
-  if (!grade || !subject) return;
-  document.getElementById('submit-form').style.display = 'block';
-  currentTaskStatuses = {};
+  document.getElementById('submit-form').style.display='block';
+  curStatuses={};
   await renderStudentList();
 }
 
 async function renderStudentList() {
-  const grade = state.submit.grade;
   showLoading(true);
-  const students = await getStudents(grade);
+  var students = await getStudents(state.submit.grade);
   showLoading(false);
-  const wrap = document.getElementById('student-list-submit');
-  wrap.innerHTML = '';
-  students.forEach((name, idx) => {
-    const row = document.createElement('div');
-    row.className = 'student-row';
-    row.innerHTML = `
-      <span class="status-num">${idx + 1}.</span>
-      <span class="student-name">${name}</span>
-      <button class="btn-submit-s" id="btn-s-${idx}">✅ ส่ง</button>
-      <button class="btn-notsubmit-s" id="btn-n-${idx}">❌ ไม่ส่ง</button>
-      <button class="btn-clear-s" id="btn-c-${idx}">–</button>
-    `;
+  var wrap=document.getElementById('student-list-submit');
+  wrap.innerHTML='';
+  students.forEach(function(name,idx){
+    var row=document.createElement('div');
+    row.className='student-row';
+    var bs=document.createElement('button'); bs.className='btn-submit-s'; bs.textContent='✅ ส่ง';
+    var bn=document.createElement('button'); bn.className='btn-notsubmit-s'; bn.textContent='❌ ไม่ส่ง';
+    var bc=document.createElement('button'); bc.className='btn-clear-s'; bc.textContent='–';
+    bs.addEventListener('click',function(){setStatus(idx,'submit',name,bs,bn);});
+    bn.addEventListener('click',function(){setStatus(idx,'not',name,bs,bn);});
+    bc.addEventListener('click',function(){setStatus(idx,'clear',name,bs,bn);});
+    var num=document.createElement('span'); num.className='status-num'; num.textContent=(idx+1)+'.';
+    var nm=document.createElement('span'); nm.className='student-name'; nm.textContent=name;
+    row.appendChild(num); row.appendChild(nm); row.appendChild(bs); row.appendChild(bn); row.appendChild(bc);
     wrap.appendChild(row);
-    row.querySelector(`#btn-s-${idx}`).addEventListener('click', () => setStatus(idx, 'submit', name));
-    row.querySelector(`#btn-n-${idx}`).addEventListener('click', () => setStatus(idx, 'not', name));
-    row.querySelector(`#btn-c-${idx}`).addEventListener('click', () => setStatus(idx, 'clear', name));
-    highlightStatus(idx, currentTaskStatuses[name] || null);
+    if(curStatuses[name]==='submit'){bs.classList.add('active');}
+    else if(curStatuses[name]==='not'){bn.classList.add('active');}
   });
 }
 
-function setStatus(idx, status, name) {
-  currentTaskStatuses[name] = status === 'clear' ? null : status;
-  highlightStatus(idx, currentTaskStatuses[name]);
+function setStatus(idx,status,name,bs,bn){
+  curStatuses[name]=status==='clear'?null:status;
+  bs.classList.toggle('active',curStatuses[name]==='submit');
+  bn.classList.toggle('active',curStatuses[name]==='not');
 }
 
-function highlightStatus(idx, status) {
-  const s = document.getElementById('btn-s-' + idx);
-  const n = document.getElementById('btn-n-' + idx);
-  if (!s || !n) return;
-  s.classList.toggle('active', status === 'submit');
-  n.classList.toggle('active', status === 'not');
-}
-
-async function bulkSet(type) {
-  const grade = state.submit.grade;
-  const students = await getStudents(grade);
-  students.forEach((name, idx) => {
-    const st = type === 'clear' ? null : type;
-    currentTaskStatuses[name] = st;
-    highlightStatus(idx, st);
-  });
-}
-
-async function saveSubmission() {
-  const { grade, subject } = state.submit;
-  const taskName = document.getElementById('task-name').value.trim();
-  if (!taskName) { showToast('⚠️ กรุณาใส่ชื่อชิ้นงาน!', '#E06B6B'); return; }
-  const taskNote = document.getElementById('task-note').value.trim();
-  const dateStr = calDate.day ? (calDate.day + ' ' + THAI_MONTHS[calDate.month] + ' ' + calDate.year) : '';
+async function bulkSet(type){
   showLoading(true);
-  const students = await getStudents(grade);
-  const statuses = {};
-  students.forEach(name => {
-    statuses[name] = currentTaskStatuses[name] || 'not';
-  });
-  const tasks = await getTasks(grade, subject);
-  const task = { id: Date.now(), name: taskName, note: taskNote, date: dateStr, statuses };
-  tasks.push(task);
-  await saveTasks(grade, subject, tasks);
+  var students=await getStudents(state.submit.grade);
   showLoading(false);
-  document.getElementById('task-name').value = '';
-  document.getElementById('task-note').value = '';
-  calDate.day = 0;
-  document.getElementById('cal-text').textContent = 'เลือกวันที่';
+  students.forEach(function(name){curStatuses[name]=type==='clear'?null:type;});
+  await renderStudentList();
+}
+
+async function saveSubmission(){
+  var taskName=document.getElementById('task-name').value.trim();
+  if(!taskName){showToast('⚠️ กรุณาใส่ชื่อชิ้นงาน!','#E06B6B');return;}
+  var taskNote=document.getElementById('task-note').value.trim();
+  var dateStr=calDate.day?(calDate.day+' '+THAI_MONTHS[calDate.month]+' '+calDate.year):'';
+  showLoading(true);
+  var students=await getStudents(state.submit.grade);
+  var statuses={};
+  students.forEach(function(name){statuses[name]=curStatuses[name]||'not';});
+  var tasks=await getTasks(state.submit.grade,state.submit.subj);
+  tasks.push({id:Date.now(),name:taskName,note:taskNote,date:dateStr,statuses:statuses});
+  await saveTasks(state.submit.grade,state.submit.subj,tasks);
+  showLoading(false);
+  document.getElementById('task-name').value='';
+  document.getElementById('task-note').value='';
+  calDate.day=0;
+  document.getElementById('cal-text').textContent='เลือกวันที่';
   renderCal();
-  currentTaskStatuses = {};
+  curStatuses={};
   await renderStudentList();
   showToast('✅ บันทึกสำเร็จ!');
 }
 
-// ============================
+// =====================
 // SECTION 2: SUMMARY
-// ============================
-async function renderSummary() {
-  const { grade, subject } = state.summary;
-  if (!grade || !subject) return;
-  const wrap = document.getElementById('summary-content');
-  wrap.innerHTML = '<div class="empty-msg">⏳ กำลังโหลด...</div>';
+// =====================
+async function renderSummary(){
+  var wrap=document.getElementById('summary-content');
+  wrap.innerHTML='<div class="empty-msg">⏳ กำลังโหลด...</div>';
   showLoading(true);
-  const [tasks, students] = await Promise.all([getTasks(grade, subject), getStudents(grade)]);
+  var grade=state.summary.grade, subj=state.summary.subj;
+  var tasks=await getTasks(grade,subj);
+  var students=await getStudents(grade);
   showLoading(false);
+  if(!tasks.length){wrap.innerHTML='<div class="empty-msg">🌸 ยังไม่มีข้อมูลชิ้นงานในวิชานี้</div>';return;}
 
-  if (tasks.length === 0) {
-    wrap.innerHTML = '<div class="empty-msg">🌸 ยังไม่มีข้อมูลชิ้นงานในวิชานี้</div>';
-    return;
-  }
-
-  let html = '<div class="summary-table-wrap"><table class="summary-table"><thead><tr>';
-  html += '<th>ชื่อ-สกุล</th>';
-  tasks.forEach(t => {
-    html += `<th class="clickable-header" data-taskid="${t.id}" title="คลิกเพื่อดู/แก้ไข">📄 ${t.name}</th>`;
-  });
-  html += '<th>รวม</th><th>%</th><th>คะแนนเก็บ<br><small>(เต็ม 80)</small></th></tr></thead><tbody>';
-
-  students.forEach(name => {
-    html += `<tr><td class="name-col">${name}</td>`;
-    let submitted = 0;
-    tasks.forEach(t => {
-      const st = t.statuses && t.statuses[name];
-      if (st === 'submit') {
-        html += '<td><span class="icon-submit" title="ส่งแล้ว"></span></td>';
-        submitted++;
-      } else if (st === 'not') {
-        html += '<td><span class="icon-not" title="ยังไม่ส่ง"></span></td>';
-      } else {
-        html += '<td><span class="icon-none" title="ไม่ระบุ"></span></td>';
-      }
+  var html='<div class="summary-table-wrap"><table class="summary-table"><thead><tr><th>ชื่อ-สกุล</th>';
+  tasks.forEach(function(t){html+='<th class="clickable-header" data-tid="'+t.id+'">📄 '+t.name+'</th>';});
+  html+='<th>รวม</th><th>%</th><th>คะแนนเก็บ<br><small>(เต็ม 80)</small></th></tr></thead><tbody>';
+  students.forEach(function(name){
+    html+='<tr><td class="name-col">'+name+'</td>';
+    var sub=0;
+    tasks.forEach(function(t){
+      var st=t.statuses&&t.statuses[name];
+      if(st==='submit'){html+='<td><span class="icon-submit" title="ส่งแล้ว"></span></td>';sub++;}
+      else if(st==='not'){html+='<td><span class="icon-not" title="ยังไม่ส่ง"></span></td>';}
+      else{html+='<td><span class="icon-none" title="ไม่ระบุ"></span></td>';}
     });
-    const total = tasks.length;
-    const pct = total > 0 ? Math.round(submitted / total * 100) : 0;
-    const score = total > 0 ? Math.round(submitted / total * 80) : 0;
-    html += `<td class="td-total">${submitted}/${total}</td>`;
-    html += `<td class="td-pct" style="color:${pctColor(pct)};font-weight:bold;">${pct}%</td>`;
-    html += `<td class="td-score">${score}</td></tr>`;
+    var total=tasks.length, pct=total?Math.round(sub/total*100):0, score=total?Math.round(sub/total*80):0;
+    html+='<td class="td-total">'+sub+'/'+total+'</td>';
+    html+='<td class="td-pct" style="color:'+pctColor(pct)+'">'+pct+'%</td>';
+    html+='<td class="td-score">'+score+'</td></tr>';
   });
-  html += '</tbody></table></div>';
+  html+='</tbody></table></div>';
 
-  const missers = [];
-  students.forEach(name => {
-    const actualMissing = tasks.filter(t => (t.statuses && t.statuses[name]) === 'not');
-    if (actualMissing.length > 0) missers.push({ name, missing: actualMissing });
+  var missers=[];
+  students.forEach(function(name){
+    var m=tasks.filter(function(t){return t.statuses&&t.statuses[name]==='not';});
+    if(m.length) missers.push({name:name,missing:m});
   });
-
-  html += '<hr class="divider"><div class="missing-list">';
-  html += '<div style="font-size:1rem;margin-bottom:12px;">🚨 <strong>นักเรียนที่ยังไม่ส่งงาน</strong> (เรียงจากขาดมากไปน้อย)</div>';
-
-  if (missers.length === 0) {
-    const anyData = tasks.some(t => Object.values(t.statuses||{}).some(v => v !== null));
-    if (anyData) html += '<div class="empty-msg">🎉 นักเรียนทุกคนส่งงานครบ!</div>';
+  missers.sort(function(a,b){return b.missing.length-a.missing.length;});
+  html+='<hr class="divider"><div class="missing-list"><div style="font-size:1rem;margin-bottom:12px;">🚨 <strong>นักเรียนที่ยังไม่ส่งงาน</strong></div>';
+  if(!missers.length){
+    if(tasks.some(function(t){return Object.values(t.statuses||{}).some(function(v){return v!==null;});})){
+      html+='<div class="empty-msg">🎉 นักเรียนทุกคนส่งงานครบ!</div>';
+    }
   } else {
-    missers.sort((a, b) => b.missing.length - a.missing.length);
-    missers.forEach((m, i) => {
-      const taskChips = m.missing.map(t =>
-        `<span class="task-chip" data-taskid="${t.id}" data-student="${m.name.replace(/"/g,'&quot;')}">${t.name}</span>`
-      ).join('');
-      html += `
-        <div class="missing-item" data-missingidx="${i}">
-          <div class="missing-header">
-            <span class="missing-name">👤 ${m.name}</span>
-            <span class="missing-count">ยังไม่ส่ง ${m.missing.length} งาน</span>
-          </div>
-          <div class="missing-tasks" id="missing-tasks-${i}">${taskChips}</div>
-        </div>`;
+    missers.forEach(function(m,i){
+      html+='<div class="missing-item" data-mi="'+i+'"><div class="missing-header"><span class="missing-name">👤 '+m.name+'</span><span class="missing-count">ยังไม่ส่ง '+m.missing.length+' งาน</span></div>';
+      html+='<div class="missing-tasks" id="mt-'+i+'">';
+      m.missing.forEach(function(t){html+='<span class="task-chip" data-tid="'+t.id+'" data-student="'+m.name+'">'+t.name+'</span>';});
+      html+='</div></div>';
     });
   }
-  html += '</div>';
-  wrap.innerHTML = html;
+  html+='</div>';
+  wrap.innerHTML=html;
 
-  // Event delegation for dynamic elements
-  wrap.querySelectorAll('.clickable-header[data-taskid]').forEach(th => {
-    th.addEventListener('click', () => openTaskDetail(parseInt(th.dataset.taskid)));
+  wrap.querySelectorAll('.clickable-header[data-tid]').forEach(function(th){
+    th.addEventListener('click',function(){openTaskDetail(parseInt(th.dataset.tid));});
   });
-  wrap.querySelectorAll('.missing-item[data-missingidx]').forEach(item => {
-    item.addEventListener('click', () => toggleMissing(parseInt(item.dataset.missingidx)));
+  wrap.querySelectorAll('.missing-item[data-mi]').forEach(function(el){
+    el.addEventListener('click',function(){document.getElementById('mt-'+el.dataset.mi).classList.toggle('open');});
   });
-  wrap.querySelectorAll('.task-chip[data-taskid]').forEach(chip => {
-    chip.addEventListener('click', e => {
-      e.stopPropagation();
-      openQuickSubmit(parseInt(chip.dataset.taskid), chip.dataset.student);
-    });
+  wrap.querySelectorAll('.task-chip').forEach(function(chip){
+    chip.addEventListener('click',function(e){e.stopPropagation();openQuickSubmit(parseInt(chip.dataset.tid),chip.dataset.student);});
   });
 }
 
-function toggleMissing(i) {
-  document.getElementById('missing-tasks-' + i).classList.toggle('open');
-}
-
-async function openTaskDetail(taskId) {
-  const { grade, subject } = state.summary;
+async function openTaskDetail(taskId){
   showLoading(true);
-  const [tasks, students] = await Promise.all([getTasks(grade, subject), getStudents(grade)]);
+  var grade=state.summary.grade, subj=state.summary.subj;
+  var tasks=await getTasks(grade,subj);
+  var students=await getStudents(grade);
   showLoading(false);
-  const task = tasks.find(t => t.id === taskId);
-  if (!task) return;
-  editingTaskId = taskId;
+  var task=tasks.find(function(t){return t.id===taskId;});
+  if(!task) return;
+  editingTaskId=taskId;
   document.getElementById('edit-info-form').classList.remove('open');
-  document.getElementById('modal-task-title').textContent = '📄 ' + task.name;
-  renderTaskInfoDisplay(task);
-  document.getElementById('edit-task-name-input').value = task.name || '';
-  document.getElementById('edit-task-note-input').value = task.note || '';
-
-  let stuHtml = '';
-  students.forEach((name, idx) => {
-    stuHtml += `
-      <div class="student-row">
-        <span class="status-num">${idx+1}.</span>
-        <span class="student-name">${name}</span>
-        <button class="btn-submit-s" id="mts-s-${idx}">✅ ส่ง</button>
-        <button class="btn-notsubmit-s" id="mts-n-${idx}">❌ ไม่ส่ง</button>
-        <button class="btn-clear-s" id="mts-c-${idx}">–</button>
-      </div>`;
-  });
-  document.getElementById('modal-task-students').innerHTML = stuHtml;
-  students.forEach((name, idx) => {
-    const st = task.statuses && task.statuses[name];
-    const s = document.getElementById('mts-s-' + idx);
-    const n = document.getElementById('mts-n-' + idx);
-    if (s) { s.classList.toggle('active', st === 'submit'); s.addEventListener('click', () => setModalStatus(idx, 'submit', name, taskId)); }
-    if (n) { n.classList.toggle('active', st === 'not');    n.addEventListener('click', () => setModalStatus(idx, 'not',    name, taskId)); }
-    const c = document.getElementById('mts-c-' + idx);
-    if (c) c.addEventListener('click', () => setModalStatus(idx, 'clear', name, taskId));
+  document.getElementById('modal-task-title').textContent='📄 '+task.name;
+  renderTaskInfo(task);
+  document.getElementById('edit-task-name-input').value=task.name||'';
+  document.getElementById('edit-task-note-input').value=task.note||'';
+  var wrap=document.getElementById('modal-task-students');
+  wrap.innerHTML='';
+  students.forEach(function(name,idx){
+    var row=document.createElement('div'); row.className='student-row';
+    var bs=document.createElement('button'); bs.className='btn-submit-s'; bs.textContent='✅ ส่ง';
+    var bn=document.createElement('button'); bn.className='btn-notsubmit-s'; bn.textContent='❌ ไม่ส่ง';
+    var bc=document.createElement('button'); bc.className='btn-clear-s'; bc.textContent='–';
+    var st=task.statuses&&task.statuses[name];
+    bs.classList.toggle('active',st==='submit');
+    bn.classList.toggle('active',st==='not');
+    bs.addEventListener('click',function(){setModalStatus(task,name,bs,bn,'submit',grade,subj);});
+    bn.addEventListener('click',function(){setModalStatus(task,name,bs,bn,'not',grade,subj);});
+    bc.addEventListener('click',function(){setModalStatus(task,name,bs,bn,'clear',grade,subj);});
+    var num=document.createElement('span'); num.className='status-num'; num.textContent=(idx+1)+'.';
+    var nm=document.createElement('span'); nm.className='student-name'; nm.textContent=name;
+    row.appendChild(num); row.appendChild(nm); row.appendChild(bs); row.appendChild(bn); row.appendChild(bc);
+    wrap.appendChild(row);
   });
   openModal('modal-task');
 }
 
-function renderTaskInfoDisplay(task) {
-  let info = '';
-  if (task.date) info += `<p>📅 วันที่สั่งงาน: <span class="badge">${task.date}</span></p>`;
-  if (task.note) info += `<p>🗒️ หมายเหตุ: ${task.note}</p>`;
-  document.getElementById('modal-task-info').innerHTML = info || '<p style="color:var(--text-light);font-size:0.88rem;">ไม่มีข้อมูลเพิ่มเติม</p>';
+function renderTaskInfo(task){
+  var info='';
+  if(task.date) info+='<p>📅 วันที่สั่งงาน: <span class="badge">'+task.date+'</span></p>';
+  if(task.note) info+='<p>🗒️ หมายเหตุ: '+task.note+'</p>';
+  document.getElementById('modal-task-info').innerHTML=info||'<p style="color:var(--text-light);font-size:0.88rem;">ไม่มีข้อมูลเพิ่มเติม</p>';
 }
 
-function toggleEditInfo() {
-  document.getElementById('edit-info-form').classList.toggle('open');
+async function setModalStatus(task,name,bs,bn,status,grade,subj){
+  if(!task.statuses) task.statuses={};
+  task.statuses[name]=status==='clear'?null:status;
+  bs.classList.toggle('active',status==='submit');
+  bn.classList.toggle('active',status==='not');
+  var tasks=await getTasks(grade,subj);
+  var idx=tasks.findIndex(function(t){return t.id===task.id;});
+  if(idx>=0) tasks[idx]=task;
+  await saveTasks(grade,subj,tasks);
 }
 
-async function saveTaskInfo() {
-  const { grade, subject } = state.summary;
+async function saveTaskInfo(){
+  var grade=state.summary.grade, subj=state.summary.subj;
+  var newName=document.getElementById('edit-task-name-input').value.trim();
+  if(!newName){showToast('⚠️ กรุณาใส่ชื่อชิ้นงาน!','#E06B6B');return;}
   showLoading(true);
-  const tasks = await getTasks(grade, subject);
-  const task = tasks.find(t => t.id === editingTaskId);
-  if (!task) { showLoading(false); return; }
-  const newName = document.getElementById('edit-task-name-input').value.trim();
-  if (!newName) { showLoading(false); showToast('⚠️ กรุณาใส่ชื่อชิ้นงาน!', '#E06B6B'); return; }
-  task.name = newName;
-  task.note = document.getElementById('edit-task-note-input').value.trim();
-  await saveTasks(grade, subject, tasks);
+  var tasks=await getTasks(grade,subj);
+  var task=tasks.find(function(t){return t.id===editingTaskId;});
+  if(task){task.name=newName;task.note=document.getElementById('edit-task-note-input').value.trim();await saveTasks(grade,subj,tasks);}
   showLoading(false);
-  document.getElementById('modal-task-title').textContent = '📄 ' + task.name;
-  renderTaskInfoDisplay(task);
+  document.getElementById('modal-task-title').textContent='📄 '+newName;
+  if(task) renderTaskInfo(task);
   document.getElementById('edit-info-form').classList.remove('open');
   showToast('✅ แก้ไขชื่องานสำเร็จ!');
 }
 
-async function setModalStatus(idx, status, name, taskId) {
-  const { grade, subject } = state.summary;
-  const tasks = await getTasks(grade, subject);
-  const task = tasks.find(t => t.id === taskId);
-  if (!task) return;
-  if (!task.statuses) task.statuses = {};
-  task.statuses[name] = status === 'clear' ? null : status;
-  const s = document.getElementById('mts-s-' + idx);
-  const n = document.getElementById('mts-n-' + idx);
-  if (s) s.classList.toggle('active', status === 'submit');
-  if (n) n.classList.toggle('active', status === 'not');
-  await saveTasks(grade, subject, tasks);
-}
+async function saveTaskEdit(){ await renderSummary(); showToast('✅ บันทึกสำเร็จ!'); closeModal('modal-task'); }
 
-async function saveTaskEdit() {
-  await renderSummary();
-  showToast('✅ บันทึกสำเร็จ!');
-  closeModal('modal-task');
-}
-
-async function confirmDeleteTask() {
-  deletingTaskId = editingTaskId;
-  const { grade, subject } = state.summary;
-  const tasks = await getTasks(grade, subject);
-  const task = tasks.find(t => t.id === deletingTaskId);
-  document.getElementById('modal-delete-msg').textContent =
-    `ต้องการลบชิ้นงาน "${task ? task.name : ''}" ใช่ไหม? ข้อมูลจะหายถาวร`;
+async function confirmDeleteTask(){
+  deletingTaskId=editingTaskId;
+  var tasks=await getTasks(state.summary.grade,state.summary.subj);
+  var task=tasks.find(function(t){return t.id===deletingTaskId;});
+  document.getElementById('modal-delete-msg').textContent='ต้องการลบชิ้นงาน "'+(task?task.name:'')+'" ใช่ไหม? ข้อมูลจะหายถาวร';
   openModal('modal-delete');
 }
 
-async function doDeleteTask() {
-  const { grade, subject } = state.summary;
+async function doDeleteTask(){
   showLoading(true);
-  let tasks = await getTasks(grade, subject);
-  tasks = tasks.filter(t => t.id !== deletingTaskId);
-  await saveTasks(grade, subject, tasks);
+  var tasks=await getTasks(state.summary.grade,state.summary.subj);
+  tasks=tasks.filter(function(t){return t.id!==deletingTaskId;});
+  await saveTasks(state.summary.grade,state.summary.subj,tasks);
   showLoading(false);
-  closeModal('modal-delete');
-  closeModal('modal-task');
+  closeModal('modal-delete'); closeModal('modal-task');
   await renderSummary();
   showToast('🗑️ ลบชิ้นงานสำเร็จ');
 }
 
-async function openQuickSubmit(taskId, studentName) {
-  const { grade, subject } = state.summary;
-  const tasks = await getTasks(grade, subject);
-  const task = tasks.find(t => t.id === taskId);
-  if (!task) return;
-  quickData = { grade, subject, taskId, studentName };
-  document.getElementById('modal-quick-title').textContent = '✅ บันทึกการส่งงาน';
-  document.getElementById('modal-quick-info').textContent =
-    `ชิ้นงาน: ${task.name}\nนักเรียน: ${studentName}`;
-  document.getElementById('modal-quick-note').value = '';
+async function openQuickSubmit(taskId,studentName){
+  var tasks=await getTasks(state.summary.grade,state.summary.subj);
+  var task=tasks.find(function(t){return t.id===taskId;});
+  if(!task) return;
+  quickData={grade:state.summary.grade,subj:state.summary.subj,taskId:taskId,studentName:studentName};
+  document.getElementById('modal-quick-info').textContent='ชิ้นงาน: '+task.name+'\nนักเรียน: '+studentName;
+  document.getElementById('modal-quick-note').value='';
   openModal('modal-quick');
 }
 
-async function saveQuickSubmit() {
-  if (!quickData) return;
-  const { grade, subject, taskId, studentName } = quickData;
+async function saveQuickSubmit(){
+  if(!quickData) return;
   showLoading(true);
-  const tasks = await getTasks(grade, subject);
-  const task = tasks.find(t => t.id === taskId);
-  if (task) {
-    if (!task.statuses) task.statuses = {};
-    task.statuses[studentName] = 'submit';
-    await saveTasks(grade, subject, tasks);
-  }
+  var tasks=await getTasks(quickData.grade,quickData.subj);
+  var task=tasks.find(function(t){return t.id===quickData.taskId;});
+  if(task){if(!task.statuses)task.statuses={};task.statuses[quickData.studentName]='submit';await saveTasks(quickData.grade,quickData.subj,tasks);}
   showLoading(false);
   closeModal('modal-quick');
   await renderSummary();
   showToast('✅ บันทึกการส่งงานสำเร็จ!');
 }
 
-// ============================
-// SECTION 3: EDIT NAMES
-// ============================
-async function renderEdit() {
-  const grade = state.edit.grade;
-  document.getElementById('edit-content').style.display = 'block';
+// =====================
+// SECTION 3: EDIT
+// =====================
+async function renderEdit(){
+  document.getElementById('edit-content').style.display='block';
   showLoading(true);
-  const students = await getStudents(grade);
+  var students=await getStudents(state.edit.grade);
   showLoading(false);
-  document.getElementById('edit-textarea').value = students.join('\n');
+  document.getElementById('edit-textarea').value=students.join('\n');
 }
 
-async function saveNames() {
-  const grade = state.edit.grade;
-  const raw = document.getElementById('edit-textarea').value;
-  const names = raw.split('\n').map(n => n.trim()).filter(n => n.length > 0);
+async function saveNames(){
+  var names=document.getElementById('edit-textarea').value.split('\n').map(function(n){return n.trim();}).filter(function(n){return n.length>0;});
   showLoading(true);
-  await fsSet('students_' + grade, names);
+  await dbSet('students_'+state.edit.grade,names);
   showLoading(false);
   showToast('✅ บันทึกรายชื่อสำเร็จ!');
 }
 
-// ============================
-// MODAL HELPERS
-// ============================
-function openModal(id) {
-  document.getElementById(id).classList.add('open');
-}
-function closeModal(id) {
-  document.getElementById(id).classList.remove('open');
-}
-document.querySelectorAll('.modal-overlay').forEach(m => {
-  m.addEventListener('click', e => {
-    if (e.target === m) m.classList.remove('open');
+// =====================
+// BIND EVENTS
+// =====================
+document.addEventListener('DOMContentLoaded', function(){
+  buildGradeBtns('submit');
+  buildGradeBtns('summary');
+  buildGradeBtns('edit');
+  initCal();
+
+  document.getElementById('cal-display').addEventListener('click', toggleCal);
+  document.getElementById('cal-prev').addEventListener('click', function(){calNav(-1);});
+  document.getElementById('cal-next').addEventListener('click', function(){calNav(1);});
+  document.addEventListener('click', function(e){
+    var popup=document.getElementById('cal-popup');
+    var wrap=document.querySelector('.calendar-wrap');
+    if(wrap&&!wrap.contains(e.target)) popup.classList.remove('open');
   });
-});
 
-// ============================
-// TOAST
-// ============================
-let toastTimer;
-function showToast(msg, bg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.style.background = bg || 'linear-gradient(135deg, var(--green-btn), var(--green-dark))';
-  t.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
-}
+  document.getElementById('bulk-submit').addEventListener('click',function(){bulkSet('submit');});
+  document.getElementById('bulk-not').addEventListener('click',function(){bulkSet('not');});
+  document.getElementById('bulk-clear').addEventListener('click',function(){bulkSet('clear');});
+  document.getElementById('btn-save-submission').addEventListener('click',saveSubmission);
+  document.getElementById('btn-save-names').addEventListener('click',saveNames);
 
-// ============================
-// SMOOTH SCROLL
-// ============================
-document.querySelectorAll('.nav a').forEach(a => {
-  a.addEventListener('click', e => {
-    e.preventDefault();
-    const id = a.getAttribute('href').substring(1);
-    const el = document.getElementById(id);
-    if (el) {
-      const offset = document.querySelector('.header').offsetHeight + 12;
-      const top = el.getBoundingClientRect().top + window.scrollY - offset;
-      window.scrollTo({ top, behavior: 'smooth' });
-    }
+  document.getElementById('btn-toggle-edit-info').addEventListener('click',function(){document.getElementById('edit-info-form').classList.toggle('open');});
+  document.getElementById('btn-save-task-info').addEventListener('click',saveTaskInfo);
+  document.getElementById('btn-close-task').addEventListener('click',function(){closeModal('modal-task');});
+  document.getElementById('btn-save-task-edit').addEventListener('click',saveTaskEdit);
+  document.getElementById('btn-confirm-delete').addEventListener('click',confirmDeleteTask);
+  document.getElementById('btn-close-quick').addEventListener('click',function(){closeModal('modal-quick');});
+  document.getElementById('btn-save-quick').addEventListener('click',saveQuickSubmit);
+  document.getElementById('btn-close-delete').addEventListener('click',function(){closeModal('modal-delete');});
+  document.getElementById('btn-do-delete').addEventListener('click',doDeleteTask);
+
+  document.querySelectorAll('.modal-overlay').forEach(function(m){
+    m.addEventListener('click',function(e){if(e.target===m)m.classList.remove('open');});
   });
-});
 
-// ============================
-// BIND ALL STATIC BUTTONS
-// ============================
-function bindEvents() {
-  // Grade buttons
-  document.querySelectorAll('.btn-grade').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const section = btn.dataset.section;
-      const grade = parseInt(btn.dataset.grade);
-      selectGrade(section, grade, btn);
+  document.querySelectorAll('.nav a').forEach(function(a){
+    a.addEventListener('click',function(e){
+      e.preventDefault();
+      var id=a.getAttribute('href').substring(1);
+      var el=document.getElementById(id);
+      if(el){var offset=document.querySelector('.header').offsetHeight+12;window.scrollTo({top:el.getBoundingClientRect().top+window.scrollY-offset,behavior:'smooth'});}
     });
   });
-
-  // Calendar
-  document.getElementById('cal-display').addEventListener('click', toggleCal);
-  document.getElementById('cal-prev').addEventListener('click', () => calNav(-1));
-  document.getElementById('cal-next').addEventListener('click', () => calNav(1));
-
-  // Bulk
-  document.getElementById('bulk-submit').addEventListener('click', () => bulkSet('submit'));
-  document.getElementById('bulk-not').addEventListener('click', () => bulkSet('not'));
-  document.getElementById('bulk-clear').addEventListener('click', () => bulkSet('clear'));
-
-  // Save submission
-  document.getElementById('btn-save-submission').addEventListener('click', saveSubmission);
-
-  // Save names
-  document.getElementById('btn-save-names').addEventListener('click', saveNames);
-
-  // Modal task buttons
-  document.getElementById('btn-toggle-edit-info').addEventListener('click', toggleEditInfo);
-  document.getElementById('btn-save-task-info').addEventListener('click', saveTaskInfo);
-  document.getElementById('btn-close-task').addEventListener('click', () => closeModal('modal-task'));
-  document.getElementById('btn-save-task-edit').addEventListener('click', saveTaskEdit);
-  document.getElementById('btn-confirm-delete').addEventListener('click', confirmDeleteTask);
-
-  // Modal quick
-  document.getElementById('btn-close-quick').addEventListener('click', () => closeModal('modal-quick'));
-  document.getElementById('btn-save-quick').addEventListener('click', saveQuickSubmit);
-
-  // Modal delete
-  document.getElementById('btn-close-delete').addEventListener('click', () => closeModal('modal-delete'));
-  document.getElementById('btn-do-delete').addEventListener('click', doDeleteTask);
-
-  // Close modals on overlay click
-  document.querySelectorAll('.modal-overlay').forEach(m => {
-    m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
-  });
-}
-
-bindEvents();
+});
 </script>
 </body>
 </html>
