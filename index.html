@@ -132,15 +132,43 @@ body{font-family:'Itim',cursive;background:var(--bg);color:var(--text);min-heigh
   .status-num{display:none}
   .btn-submit-s,.btn-notsubmit-s,.btn-clear-s{flex:1;padding:8px 4px;font-size:0.85rem}
 }
+/* ATTENDANCE */
+.section-title.att{border-color:#A8D8FF}
+.btn-att{border:2px solid transparent;border-radius:20px;padding:6px 14px;cursor:pointer;font-family:'Itim',cursive;font-size:0.85rem;transition:all 0.2s;opacity:0.3}
+.btn-come{background:var(--green-btn);color:#fff;border-color:var(--green-btn)}
+.btn-come:hover{opacity:0.65}
+.btn-come.active{opacity:1;background:var(--green-dark);border-color:var(--green-dark);box-shadow:0 0 0 3px #69C99B55;transform:scale(1.05)}
+.btn-leave{background:#F5C842;color:#5a4200;border-color:#F5C842}
+.btn-leave:hover{opacity:0.65}
+.btn-leave.active{opacity:1;background:#d4a800;border-color:#d4a800;box-shadow:0 0 0 3px #F5C84255;transform:scale(1.05)}
+.btn-absent{background:var(--red-dark);color:#fff;border-color:var(--red-dark)}
+.btn-absent:hover{opacity:0.65}
+.btn-absent.active{opacity:1;background:#c05050;border-color:#c05050;box-shadow:0 0 0 3px #E06B6B55;transform:scale(1.05)}
+.btn-save.att-save{background:linear-gradient(135deg,#A8D8FF,#4A90D9)}
+.month-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.month-tab{padding:5px 12px;border-radius:20px;border:2px solid var(--border);background:#fff;cursor:pointer;font-family:'Itim',cursive;font-size:0.82rem;color:var(--text-light);transition:all 0.2s}
+.month-tab:hover{border-color:#A8D8FF;color:#4A90D9}
+.month-tab.has-data{border-color:#A8D8FF;color:#4A90D9;font-weight:bold}
+.month-tab.active{background:#4A90D9;color:#fff;border-color:#4A90D9}
+.top-absent-item{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--pink-light);border-radius:var(--radius-sm);margin-bottom:8px;border:2px solid var(--border)}
+.top-rank{font-size:1.1rem;min-width:28px}
+.top-name{flex:1;font-size:0.95rem}
+.top-count{background:var(--red-dark);color:#fff;border-radius:20px;padding:2px 12px;font-size:0.85rem}
+.ic-come{display:inline-block;width:14px;height:14px;border-radius:50%;background:var(--green-dark);vertical-align:middle}
+.ic-leave{display:inline-block;width:14px;height:14px;border-radius:50%;background:#d4a800;vertical-align:middle}
+.ic-absent{display:inline-block;width:14px;height:14px;border-radius:50%;background:var(--red-dark);vertical-align:middle}
+.ic-none{display:inline-block;width:14px;height:14px;border-radius:50%;background:#ddd;vertical-align:middle}
 </style>
 </head>
 <body>
 <div class="header">
-  <h1>📚 ระบบบันทึกการส่งงาน</h1>
+  <h1>📚 ระบบบันทึกการเรียน — รร.บ้านนาโพธิ์อ่างสร้างหิน</h1>
   <nav class="nav">
     <a href="#sec-submit">📝 บันทึกการส่งงาน</a>
     <a href="#sec-summary">📊 สรุปการส่งงาน</a>
     <a href="#sec-edit">✏️ แก้ไขรายชื่อ</a>
+    <a href="#sec-att-record" style="background:rgba(168,216,255,0.8)">📋 บันทึกการมาเรียน ป.5</a>
+    <a href="#sec-att-stat" style="background:rgba(168,216,255,0.8)">📈 สถิติการมาเรียน</a>
   </nav>
 </div>
 
@@ -209,7 +237,48 @@ body{font-family:'Itim',cursive;background:var(--bg);color:var(--text);min-heigh
   </div>
 </div>
 
-<div class="footer">🌸 ระบบบันทึกการส่งงาน โรงเรียนบ้านนาโพธิ์อ่างสร้างหิน 2569 🌸</div>
+<!-- ATTENDANCE RECORD -->
+<div class="section" id="sec-att-record">
+  <div class="section-title att"><span>📋</span> บันทึกการมาเรียน — ป.5</div>
+  <div class="card">
+    <div class="form-group" style="max-width:260px">
+      <label>📅 เลือกวันที่</label>
+      <div class="calendar-wrap">
+        <div class="calendar-input" id="att-cal-display">📅 <span id="att-cal-text">เลือกวันที่</span></div>
+        <div class="calendar-popup" id="att-cal-popup">
+          <div class="cal-header">
+            <button class="cal-nav" id="att-cal-prev">◀</button>
+            <span class="cal-month-year" id="att-cal-month-label"></span>
+            <button class="cal-nav" id="att-cal-next">▶</button>
+          </div>
+          <div class="cal-grid" id="att-cal-grid"></div>
+        </div>
+      </div>
+    </div>
+    <div id="att-record-form" style="display:none">
+      <div class="bulk-btns">
+        <button class="btn-bulk all-submit" id="att-bulk-come">✅ มาทั้งหมด</button>
+        <button class="btn-bulk all-leave" id="att-bulk-leave" style="background:var(--yellow);color:#7a6200">🟡 ลาทั้งหมด</button>
+        <button class="btn-bulk all-not" id="att-bulk-absent">❌ ขาดทั้งหมด</button>
+        <button class="btn-bulk all-clear" id="att-bulk-clear">🔄 ไม่เลือกทั้งหมด</button>
+      </div>
+      <div id="att-student-list"></div>
+      <br>
+      <button class="btn-save att-save" id="btn-save-att">💾 บันทึกการเข้าเรียน</button>
+    </div>
+  </div>
+</div>
+
+<!-- ATTENDANCE STATS -->
+<div class="section" id="sec-att-stat">
+  <div class="section-title att"><span>📈</span> สถิติการมาเรียน — ป.5</div>
+  <div class="card">
+    <button class="btn-save att-save" id="btn-load-stat" style="margin-top:0;margin-bottom:16px">📊 แสดงสถิติ</button>
+    <div id="att-stat-content"></div>
+  </div>
+</div>
+
+<div class="footer">🌸 ระบบบันทึกการเรียน โรงเรียนบ้านนาโพธิ์อ่างสร้างหิน 2569 🌸</div>
 
 <div class="modal-overlay" id="modal-task">
   <div class="modal">
@@ -773,7 +842,253 @@ document.addEventListener('DOMContentLoaded',function(){
       if(el){var off=document.querySelector('.header').offsetHeight+12;window.scrollTo({top:el.getBoundingClientRect().top+window.scrollY-off,behavior:'smooth'});}
     });
   });
+
+  // close att calendar on outside click
+  document.addEventListener('click',function(e){
+    var attWrap=document.querySelector('#sec-att-record .calendar-wrap');
+    if(attWrap&&!attWrap.contains(e.target)) document.getElementById('att-cal-popup').classList.remove('open');
+  });
+
+  initAttCal();
+  bindAttEvents();
 });
+
+// =====================
+// ATTENDANCE
+// =====================
+var ATT_GRADE='5';
+var attCalDate={year:0,month:0,day:0};
+var attStatuses={};
+var currentStatMonth='all';
+
+var SCHOOL_MONTHS=[
+  {y:2569,m:4,label:'พ.ค. 69',sem:1},{y:2569,m:5,label:'มิ.ย. 69',sem:1},
+  {y:2569,m:6,label:'ก.ค. 69',sem:1},{y:2569,m:7,label:'ส.ค. 69',sem:1},
+  {y:2569,m:8,label:'ก.ย. 69',sem:1},{y:2569,m:9,label:'ต.ค. 69',sem:1},
+  {y:2569,m:10,label:'พ.ย. 69',sem:2},{y:2569,m:11,label:'ธ.ค. 69',sem:2},
+  {y:2570,m:0,label:'ม.ค. 70',sem:2},{y:2570,m:1,label:'ก.พ. 70',sem:2},
+  {y:2570,m:2,label:'มี.ค. 70',sem:2}
+];
+
+async function getAttDay(dk){ return (await dbGet('att5_'+dk))||{}; }
+async function saveAttDay(dk,data){ await dbSet('att5_'+dk,data); }
+async function getAttDates(){ return (await dbGet('attdates5'))||[]; }
+async function saveAttDates(dates){ await dbSet('attdates5',dates); }
+
+function makeDateKey(cd){
+  return (cd.year-543)+'-'+String(cd.month+1).padStart(2,'0')+'-'+String(cd.day).padStart(2,'0');
+}
+
+function initAttCal(){
+  var now=new Date();
+  attCalDate.year=now.getFullYear()+543; attCalDate.month=now.getMonth(); attCalDate.day=now.getDate();
+  renderAttCal();
+  document.getElementById('att-cal-text').textContent=attCalDate.day+' '+THAI_MONTHS[attCalDate.month]+' '+attCalDate.year;
+  loadAttForm();
+}
+
+function renderAttCal(){
+  document.getElementById('att-cal-month-label').textContent=THAI_MONTHS[attCalDate.month]+' '+attCalDate.year;
+  var grid=document.getElementById('att-cal-grid'); grid.innerHTML='';
+  DAY_NAMES.forEach(function(d){var e=document.createElement('div');e.className='cal-day-name';e.textContent=d;grid.appendChild(e);});
+  var gy=attCalDate.year-543,first=new Date(gy,attCalDate.month,1).getDay(),days=new Date(gy,attCalDate.month+1,0).getDate(),today=new Date();
+  for(var i=0;i<first;i++){var e=document.createElement('div');e.className='cal-day empty';grid.appendChild(e);}
+  for(var d=1;d<=days;d++){
+    var e=document.createElement('div'); e.className='cal-day';
+    if(today.getDate()===d&&today.getMonth()===attCalDate.month&&today.getFullYear()===gy) e.classList.add('today');
+    if(attCalDate.day===d) e.classList.add('selected');
+    e.textContent=d;
+    (function(day){ e.addEventListener('click',function(){
+      attCalDate.day=day;
+      document.getElementById('att-cal-text').textContent=day+' '+THAI_MONTHS[attCalDate.month]+' '+attCalDate.year;
+      document.getElementById('att-cal-popup').classList.remove('open');
+      renderAttCal(); loadAttForm();
+    }); })(d);
+    grid.appendChild(e);
+  }
+}
+
+async function loadAttForm(){
+  if(!attCalDate.day){ document.getElementById('att-record-form').style.display='none'; return; }
+  showLoading(true);
+  var students, existing;
+  try{ students=await getStudents(ATT_GRADE); existing=await getAttDay(makeDateKey(attCalDate)); }
+  catch(e){ students=DEFAULT_STUDENTS[ATT_GRADE]||[]; existing={}; }
+  finally{ showLoading(false); }
+  attStatuses={};
+  Object.keys(existing).forEach(function(k){ attStatuses[k]=existing[k]; });
+  document.getElementById('att-record-form').style.display='block';
+  renderAttStudentList(students);
+}
+
+function renderAttStudentList(students){
+  var wrap=document.getElementById('att-student-list'); wrap.innerHTML='';
+  students.forEach(function(name,idx){
+    var row=document.createElement('div'); row.className='student-row';
+    var top=document.createElement('div'); top.style.cssText='display:flex;align-items:center;gap:6px;width:100%';
+    var num=document.createElement('span'); num.className='status-num'; num.textContent=(idx+1)+'.';
+    var nm=document.createElement('span'); nm.className='student-name'; nm.textContent=name;
+    top.appendChild(num); top.appendChild(nm);
+    var btns=document.createElement('div'); btns.style.cssText='display:flex;gap:6px;width:100%';
+    var bc=document.createElement('button'); bc.className='btn-att btn-come'; bc.textContent='✅ มา';
+    var bl=document.createElement('button'); bl.className='btn-att btn-leave'; bl.textContent='🟡 ลา';
+    var ba=document.createElement('button'); ba.className='btn-att btn-absent'; ba.textContent='❌ ขาด';
+    if(attStatuses[name]==='come') bc.classList.add('active');
+    else if(attStatuses[name]==='leave') bl.classList.add('active');
+    else if(attStatuses[name]==='absent') ba.classList.add('active');
+    bc.addEventListener('click',function(){ setAttStatus(name,bc,bl,ba,'come'); });
+    bl.addEventListener('click',function(){ setAttStatus(name,bc,bl,ba,'leave'); });
+    ba.addEventListener('click',function(){ setAttStatus(name,bc,bl,ba,'absent'); });
+    btns.appendChild(bc); btns.appendChild(bl); btns.appendChild(ba);
+    row.appendChild(top); row.appendChild(btns); wrap.appendChild(row);
+  });
+}
+
+function setAttStatus(name,bc,bl,ba,status){
+  attStatuses[name]=status;
+  bc.classList.toggle('active',status==='come');
+  bl.classList.toggle('active',status==='leave');
+  ba.classList.toggle('active',status==='absent');
+}
+
+function attBulkSet(type){
+  document.querySelectorAll('#att-student-list .student-row').forEach(function(row){
+    var nm=row.querySelector('.student-name'); if(!nm) return;
+    var name=nm.textContent; attStatuses[name]=type==='clear'?null:type;
+    var bc=row.querySelector('.btn-come'),bl=row.querySelector('.btn-leave'),ba=row.querySelector('.btn-absent');
+    if(bc) bc.classList.toggle('active',attStatuses[name]==='come');
+    if(bl) bl.classList.toggle('active',attStatuses[name]==='leave');
+    if(ba) ba.classList.toggle('active',attStatuses[name]==='absent');
+  });
+}
+
+async function saveAttendance(){
+  if(!attCalDate.day){ showToast('⚠️ กรุณาเลือกวันที่','#E06B6B'); return; }
+  var dk=makeDateKey(attCalDate);
+  showLoading(true);
+  try{
+    await saveAttDay(dk,attStatuses);
+    var dates=await getAttDates();
+    if(dates.indexOf(dk)<0){ dates.push(dk); dates.sort(); await saveAttDates(dates); }
+    showToast('✅ บันทึกการเข้าเรียนสำเร็จ!');
+  }catch(e){ console.error('saveAttendance:',e); showToast('❌ บันทึกไม่สำเร็จ: '+e.message,'#E06B6B'); }
+  finally{ showLoading(false); }
+}
+
+async function renderAttStat(){
+  var wrap=document.getElementById('att-stat-content');
+  wrap.innerHTML='<div class="empty-msg">⏳ กำลังโหลด...</div>';
+  showLoading(true);
+  var students,allDates=[],dayData={};
+  try{
+    students=await getStudents(ATT_GRADE);
+    allDates=await getAttDates()||[];
+    for(var i=0;i<allDates.length;i++) dayData[allDates[i]]=await getAttDay(allDates[i]);
+  }catch(e){ students=DEFAULT_STUDENTS[ATT_GRADE]||[]; allDates=[]; }
+  finally{ showLoading(false); }
+
+  if(!allDates.length){ wrap.innerHTML='<div class="empty-msg">🌸 ยังไม่มีข้อมูลการมาเรียนของ ป.5</div>'; return; }
+
+  function datesInMonth(sm){
+    return allDates.filter(function(d){
+      var p=d.split('-'); return (parseInt(p[0])+543)===sm.y&&(parseInt(p[1])-1)===sm.m;
+    });
+  }
+  function datesInSem(s){
+    return allDates.filter(function(d){
+      var p=d.split('-'); var by=parseInt(p[0])+543,bm=parseInt(p[1])-1;
+      return SCHOOL_MONTHS.some(function(sm){ return sm.sem===s&&sm.y===by&&sm.m===bm; });
+    });
+  }
+  function statsFor(dates){
+    var res={};
+    students.forEach(function(n){ res[n]={come:0,leave:0,absent:0}; });
+    dates.forEach(function(dk){
+      var rec=dayData[dk]||{};
+      students.forEach(function(n){
+        var s=rec[n];
+        if(s==='come') res[n].come++;
+        else if(s==='leave') res[n].leave++;
+        else if(s==='absent') res[n].absent++;
+      });
+    });
+    return res;
+  }
+
+  var activeDates=currentStatMonth==='all'?allDates:currentStatMonth==='sem1'?datesInSem(1):currentStatMonth==='sem2'?datesInSem(2):datesInMonth(SCHOOL_MONTHS[currentStatMonth]);
+  var stats=statsFor(activeDates), totalDays=activeDates.length;
+
+  // Tabs
+  var tabHtml='<div class="month-tabs">';
+  tabHtml+='<span class="month-tab has-data'+(currentStatMonth==='all'?' active':'')+'" data-mi="all">ทั้งหมด ('+allDates.length+' วัน)</span>';
+  if(datesInSem(1).length) tabHtml+='<span class="month-tab has-data'+(currentStatMonth==='sem1'?' active':'')+'" data-mi="sem1">ภาคเรียน 1 ('+datesInSem(1).length+' วัน)</span>';
+  if(datesInSem(2).length) tabHtml+='<span class="month-tab has-data'+(currentStatMonth==='sem2'?' active':'')+'" data-mi="sem2">ภาคเรียน 2 ('+datesInSem(2).length+' วัน)</span>';
+  SCHOOL_MONTHS.forEach(function(sm,i){
+    var cnt=datesInMonth(sm).length; if(!cnt) return;
+    tabHtml+='<span class="month-tab has-data'+(currentStatMonth===i?' active':'')+'" data-mi="'+i+'">'+sm.label+' ('+cnt+' วัน)</span>';
+  });
+  tabHtml+='</div>';
+
+  // Main table
+  var html=tabHtml+'<div style="font-size:0.92rem;font-weight:bold;margin-bottom:8px;color:var(--text)">📊 '+(currentStatMonth==='all'?'สรุปทั้งหมด':currentStatMonth==='sem1'?'ภาคเรียน 1':currentStatMonth==='sem2'?'ภาคเรียน 2':SCHOOL_MONTHS[currentStatMonth].label)+' ('+totalDays+' วัน)</div>';
+  html+='<div class="summary-table-wrap"><table class="summary-table"><thead><tr><th class="name-th">ชื่อ-สกุล</th><th>มา</th><th>ลา</th><th>ขาด</th><th>รวม</th><th>% มา</th></tr></thead><tbody>';
+  students.forEach(function(name){
+    var s=stats[name],pct=totalDays>0?Math.round(s.come/totalDays*100):0;
+    html+='<tr><td class="name-col">'+name+'</td>';
+    html+='<td style="color:var(--green-dark);font-weight:bold">'+s.come+'</td>';
+    html+='<td style="color:#d4a800;font-weight:bold">'+s.leave+'</td>';
+    html+='<td style="color:var(--red-dark);font-weight:bold">'+s.absent+'</td>';
+    html+='<td>'+totalDays+'</td><td style="color:'+pctColor(pct)+';font-weight:bold">'+pct+'%</td></tr>';
+  });
+  html+='</tbody></table></div>';
+
+  // Monthly mini table
+  var activeMonths=SCHOOL_MONTHS.filter(function(sm){ return datesInMonth(sm).length>0; });
+  if(activeMonths.length>0){
+    html+='<hr class="divider"><div style="font-size:0.9rem;font-weight:bold;margin-bottom:8px;">📅 สรุปรายเดือน <span style="font-size:0.75rem;color:var(--text-light);font-weight:normal">(มา / ลา / ขาด)</span></div>';
+    html+='<div class="summary-table-wrap"><table class="summary-table"><thead><tr><th class="name-th">ชื่อ-สกุล</th>';
+    activeMonths.forEach(function(sm){ html+='<th>'+sm.label+'</th>'; });
+    html+='</tr></thead><tbody>';
+    students.forEach(function(name){
+      html+='<tr><td class="name-col">'+name+'</td>';
+      activeMonths.forEach(function(sm){
+        var ms=statsFor(datesInMonth(sm))[name];
+        html+='<td style="font-size:0.78rem;line-height:1.6"><span style="color:var(--green-dark)">'+ms.come+'</span>/<span style="color:#d4a800">'+ms.leave+'</span>/<span style="color:var(--red-dark)">'+ms.absent+'</span></td>';
+      });
+      html+='</tr>';
+    });
+    html+='</tbody></table></div>';
+  }
+
+  // Top absent
+  var allSt=statsFor(allDates);
+  var sorted=students.slice().sort(function(a,b){ return allSt[b].absent-allSt[a].absent; });
+  var withAbs=sorted.filter(function(n){ return allSt[n].absent>0; });
+  html+='<hr class="divider"><div style="font-size:1rem;margin-bottom:10px;">🚨 <strong>ขาดเรียนมากสุด</strong> (เรียงจากมากไปน้อย)</div>';
+  if(!withAbs.length){ html+='<div class="empty-msg">🎉 ไม่มีนักเรียนขาดเรียน!</div>'; }
+  else{ withAbs.forEach(function(name,i){ html+='<div class="top-absent-item"><span class="top-rank">'+(i+1)+'.</span><span class="top-name">'+name+'</span><span class="top-count">ขาด '+allSt[name].absent+' วัน</span></div>'; }); }
+
+  wrap.innerHTML=html;
+  wrap.querySelectorAll('.month-tab[data-mi]').forEach(function(tab){
+    tab.addEventListener('click',function(){
+      var mi=tab.dataset.mi;
+      currentStatMonth=(mi==='all'||mi==='sem1'||mi==='sem2')?mi:parseInt(mi);
+      renderAttStat();
+    });
+  });
+}
+
+function bindAttEvents(){
+  document.getElementById('att-cal-display').addEventListener('click',function(){ document.getElementById('att-cal-popup').classList.toggle('open'); });
+  document.getElementById('att-cal-prev').addEventListener('click',function(){ attCalDate.month--; if(attCalDate.month<0){attCalDate.month=11;attCalDate.year--;} renderAttCal(); });
+  document.getElementById('att-cal-next').addEventListener('click',function(){ attCalDate.month++; if(attCalDate.month>11){attCalDate.month=0;attCalDate.year++;} renderAttCal(); });
+  document.getElementById('att-bulk-come').addEventListener('click',function(){ attBulkSet('come'); });
+  document.getElementById('att-bulk-leave').addEventListener('click',function(){ attBulkSet('leave'); });
+  document.getElementById('att-bulk-absent').addEventListener('click',function(){ attBulkSet('absent'); });
+  document.getElementById('att-bulk-clear').addEventListener('click',function(){ attBulkSet('clear'); });
+  document.getElementById('btn-save-att').addEventListener('click',saveAttendance);
+  document.getElementById('btn-load-stat').addEventListener('click',function(){ currentStatMonth='all'; renderAttStat(); });
+}
 </script>
 </body>
 </html>
