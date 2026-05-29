@@ -361,7 +361,8 @@ function initCal() {
   var now = new Date();
   calDate.year = now.getFullYear()+543;
   calDate.month = now.getMonth();
-  calDate.day = 0;
+  calDate.day = now.getDate();
+  document.getElementById('cal-text').textContent = calDate.day+' '+THAI_MONTHS[calDate.month]+' '+calDate.year;
   renderCal();
 }
 function toggleCal() { document.getElementById('cal-popup').classList.toggle('open'); }
@@ -530,8 +531,10 @@ async function saveSubmission(){
   showLoading(false);
   document.getElementById('task-name').value='';
   document.getElementById('task-note').value='';
-  calDate.day=0;
-  document.getElementById('cal-text').textContent='เลือกวันที่';
+  var now = new Date();
+  calDate.year = now.getFullYear()+543; calDate.month = now.getMonth();
+  calDate.day = now.getDate();
+  document.getElementById('cal-text').textContent = calDate.day+' '+THAI_MONTHS[calDate.month]+' '+calDate.year;
   renderCal();
   curStatuses={};
   await renderStudentList();
