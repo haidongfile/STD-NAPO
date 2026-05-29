@@ -450,29 +450,49 @@ select.styled-select{border:2px solid var(--border);border-radius:var(--radius-s
 // =====================
 var db = null, useFirebase = false;
 try {
-  firebase.initializeApp({
-    apiKey:"AIzaSyDQKHFHtZp0Dpxn-Lun_8vVSSckmPKk8T0",
-    authDomain:"student-check-b528b.firebaseapp.com",
-    projectId:"student-check-b528b",
-    storageBucket:"student-check-b528b.firebasestorage.app",
-    messagingSenderId:"583737514275",
-    appId:"1:583737514275:web:63ea1c10484793dbba5496"
-  });
-  db = firebase.firestore();
-  useFirebase = true;
-} catch(e) { console.log('Firebase unavailable, using localStorage'); }
+  if (typeof firebase !== 'undefined') {
+    firebase.initializeApp({
+      apiKey:"AIzaSyDQKHFHtZp0Dpxn-Lun_8vVSSckmPKk8T0",
+      authDomain:"student-check-b528b.firebaseapp.com",
+      projectId:"student-check-b528b",
+      storageBucket:"student-check-b528b.firebasestorage.app",
+      messagingSenderId:"583737514275",
+      appId:"1:583737514275:web:63ea1c10484793dbba5496"
+    });
+    db = firebase.firestore();
+    useFirebase = true;
+    console.log('Firebase ready');
+  } else {
+    console.log('Firebase SDK not loaded, using localStorage');
+  }
+} catch(e) { console.log('Firebase init failed, using localStorage:', e.message); }
 
 var cache = {};
 function showLoading(v){ document.getElementById('loading-overlay').style.display = v?'flex':'none'; }
 
+function withTimeout(promise, ms) {
+  return Promise.race([
+    promise,
+    new Promise(function(_,reject){ setTimeout(function(){reject(new Error('timeout'));}, ms); })
+  ]);
+}
+
 async function dbGet(key) {
   if(cache[key]!==undefined) return cache[key];
-  if(useFirebase){ try{ var s=await db.collection('data').doc(key).get(); var v=s.exists?s.data().value:null; cache[key]=v; return v; }catch(e){} }
+  if(useFirebase){
+    try{
+      var s=await withTimeout(db.collection('data').doc(key).get(), 8000);
+      var v=s.exists?s.data().value:null; cache[key]=v; return v;
+    }catch(e){ console.warn('Firestore get failed, fallback localStorage:', e.message); useFirebase=false; }
+  }
   try{ var r=localStorage.getItem('hw_'+key); var v=r?JSON.parse(r):null; cache[key]=v; return v; }catch(e){ return null; }
 }
 async function dbSet(key, value) {
   cache[key]=value;
-  if(useFirebase){ try{ await db.collection('data').doc(key).set({value:value}); return; }catch(e){} }
+  if(useFirebase){
+    try{ await withTimeout(db.collection('data').doc(key).set({value:value}), 8000); return; }
+    catch(e){ console.warn('Firestore set failed, fallback localStorage:', e.message); useFirebase=false; }
+  }
   try{ localStorage.setItem('hw_'+key, JSON.stringify(value)); }catch(e){}
 }
 
@@ -665,7 +685,12 @@ async function renderSubmitForm(){
 }
 
 async function renderStudentList(){
-  showLoading(true); var students=await getStudents(state.submit.grade); showLoading(false);
+  var students;
+  showLoading(true);
+  try{ students=await getStudents(state.submit.grade); }
+  catch(e){ students=DEFAULT_STUDENTS[state.submit.grade]||[]; }
+  finally{ showLoading(false); }
+  students=students||DEFAULT_STUDENTS[state.submit.grade]||[];
   var wrap=document.getElementById('student-list-submit'); wrap.innerHTML='';
   students.forEach(function(name,idx){
     var row=document.createElement('div'); row.className='student-row';
@@ -730,10 +755,12 @@ async function saveSubmission(){
 // =====================
 async function renderSummary(){
   var wrap=document.getElementById('summary-content'); wrap.innerHTML='<div class="empty-msg">⏳ กำลังโหลด...</div>';
-  showLoading(true);
   var grade=state.summary.grade, subj=state.summary.subj;
-  var tasks=await getTasks(grade,subj), students=await getStudents(grade);
-  showLoading(false);
+  var tasks, students;
+  showLoading(true);
+  try{ tasks=await getTasks(grade,subj); students=await getStudents(grade); }
+  catch(e){ tasks=[]; students=DEFAULT_STUDENTS[grade]||[]; }
+  finally{ showLoading(false); }
   if(!tasks.length){wrap.innerHTML='<div class="empty-msg">🌸 ยังไม่มีข้อมูลชิ้นงานในวิชานี้</div>';return;}
   var html='<div class="summary-table-wrap"><table class="summary-table"><thead><tr><th class="name-th">ชื่อ-สกุล</th>';
   tasks.forEach(function(t){html+='<th class="clickable-header" data-tid="'+t.id+'">📄 '+t.name+'</th>';});
@@ -909,10 +936,11 @@ function checkAttForm(){
 
 async function loadAttForm(grade,subj){
   var dateKey=makeDateKey(attCalDate);
+  var students, existing;
   showLoading(true);
-  var students=await getStudents(grade);
-  var existing=await getAttDay(grade,subj,dateKey);
-  showLoading(false);
+  try{ students=await getStudents(grade); existing=await getAttDay(grade,subj,dateKey); }
+  catch(e){ students=DEFAULT_STUDENTS[grade]||[]; existing={}; }
+  finally{ showLoading(false); }
   attStatuses={};
   Object.keys(existing).forEach(function(k){attStatuses[k]=existing[k];});
   document.getElementById('att-record-form').style.display='block';
@@ -976,15 +1004,16 @@ async function renderAttStat(){
   var grade='5', subj='general';
   var wrap=document.getElementById('att-stat-content');
   wrap.innerHTML='<div class="empty-msg">⏳ กำลังโหลด...</div>';
+  var students, allDates=[], dayData={};
   showLoading(true);
-  var students=await getStudents(grade);
-  var allDates=await getAttDates(grade,subj);
-  // โหลดทุกวัน
-  var dayData={};
-  for(var i=0;i<allDates.length;i++){
-    dayData[allDates[i]]=await getAttDay(grade,subj,allDates[i]);
-  }
-  showLoading(false);
+  try{
+    students=await getStudents(grade);
+    allDates=await getAttDates(grade,subj)||[];
+    for(var i=0;i<allDates.length;i++){
+      dayData[allDates[i]]=await getAttDay(grade,subj,allDates[i]);
+    }
+  }catch(e){ students=DEFAULT_STUDENTS[grade]||[]; allDates=[]; }
+  finally{ showLoading(false); }
   if(!allDates.length){wrap.innerHTML='<div class="empty-msg">🌸 ยังไม่มีข้อมูลการมาเรียนในวิชานี้</div>';return;}
 
   // หาเดือนที่มีข้อมูล
