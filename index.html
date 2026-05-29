@@ -723,10 +723,19 @@ function setStatus(idx,status,name,bs,bn){
   bn.classList.toggle('active',curStatuses[name]==='not');
 }
 
-async function bulkSet(type){
-  showLoading(true); var students=await getStudents(state.submit.grade); showLoading(false);
-  students.forEach(function(name){curStatuses[name]=type==='clear'?null:type;});
-  await renderStudentList();
+function bulkSet(type){
+  // อัปเดต status ใน memory แล้ว highlight ปุ่มโดยตรง ไม่ต้อง re-render
+  var wrap=document.getElementById('student-list-submit');
+  var rows=wrap.querySelectorAll('.student-row');
+  rows.forEach(function(row,idx){
+    var nm=row.querySelector('.student-name'); if(!nm) return;
+    var name=nm.textContent;
+    curStatuses[name]=type==='clear'?null:type;
+    var bs=row.querySelector('.btn-submit-s');
+    var bn=row.querySelector('.btn-notsubmit-s');
+    if(bs) bs.classList.toggle('active',curStatuses[name]==='submit');
+    if(bn) bn.classList.toggle('active',curStatuses[name]==='not');
+  });
 }
 
 async function saveSubmission(){
@@ -977,10 +986,20 @@ function setAttStatus(name,bc,bl,ba,status){
   ba.classList.toggle('active',status==='absent');
 }
 
-async function attBulkSet(type){
-  showLoading(true); var students=await getStudents('5'); showLoading(false);
-  students.forEach(function(name){attStatuses[name]=type==='clear'?null:type;});
-  renderAttStudentList(students);
+function attBulkSet(type){
+  var wrap=document.getElementById('att-student-list');
+  var rows=wrap.querySelectorAll('.student-row');
+  rows.forEach(function(row){
+    var nm=row.querySelector('.student-name'); if(!nm) return;
+    var name=nm.textContent;
+    attStatuses[name]=type==='clear'?null:type;
+    var bc=row.querySelector('.btn-come');
+    var bl=row.querySelector('.btn-leave');
+    var ba=row.querySelector('.btn-absent');
+    if(bc) bc.classList.toggle('active',attStatuses[name]==='come');
+    if(bl) bl.classList.toggle('active',attStatuses[name]==='leave');
+    if(ba) ba.classList.toggle('active',attStatuses[name]==='absent');
+  });
 }
 
 async function saveAttendance(){
@@ -1014,7 +1033,7 @@ async function renderAttStat(){
     }
   }catch(e){ students=DEFAULT_STUDENTS[grade]||[]; allDates=[]; }
   finally{ showLoading(false); }
-  if(!allDates.length){wrap.innerHTML='<div class="empty-msg">🌸 ยังไม่มีข้อมูลการมาเรียนในวิชานี้</div>';return;}
+  if(!allDates.length){wrap.innerHTML='<div class="empty-msg">🌸 ยังไม่มีข้อมูลการมาเรียนของ ป.5</div>';return;}
 
   // หาเดือนที่มีข้อมูล
   function datesInMonth(sm){
@@ -1025,14 +1044,14 @@ async function renderAttStat(){
   }
   function statsForDates(dates){
     var result={};
-    students.forEach(function(name){result[name]={come:0,leave:0,absent:0,total:0};});
+    students.forEach(function(name){result[name]={come:0,leave:0,absent:0};});
     dates.forEach(function(dk){
       var rec=dayData[dk]||{};
       students.forEach(function(name){
         var s=rec[name];
-        if(s==='come'){result[name].come++;result[name].total++;}
-        else if(s==='leave'){result[name].leave++;result[name].total++;}
-        else if(s==='absent'){result[name].absent++;result[name].total++;}
+        if(s==='come') result[name].come++;
+        else if(s==='leave') result[name].leave++;
+        else if(s==='absent') result[name].absent++;
       });
     });
     return result;
@@ -1043,16 +1062,42 @@ async function renderAttStat(){
   var totalDays = activeDates.length;
 
   // month tabs
-  var tabsHtml='<div class="month-tabs"><span class="month-tab'+(currentStatMonth==='all'?' active':'')+(allDates.length?' has-data':'')+'" data-mi="all">ทั้งหมด</span>';
+  var tabsHtml='<div class="month-tabs"><span class="month-tab'+(currentStatMonth==='all'?' active':'')+(allDates.length?' has-data':'')+'" data-mi="all">ทั้งหมด ('+allDates.length+' วัน)</span>';
   SCHOOL_MONTHS.forEach(function(sm,i){
-    var has=datesInMonth(sm).length>0;
-    if(!has) return;
-    tabsHtml+='<span class="month-tab'+(currentStatMonth===i?' active':'')+(has?' has-data':'')+'" data-mi="'+i+'">'+sm.label+'</span>';
+    var cnt=datesInMonth(sm).length;
+    if(!cnt) return;
+    tabsHtml+='<span class="month-tab'+(currentStatMonth===i?' active':'')+' has-data" data-mi="'+i+'">'+sm.label+' ('+cnt+' วัน)</span>';
   });
   tabsHtml+='</div>';
 
-  // table
-  var html=tabsHtml+'<div class="summary-table-wrap"><table class="summary-table"><thead><tr>';
+  // ตารางสรุปรายเดือน (mini) — แสดงเฉพาะเดือนที่มีข้อมูล
+  var monthSumHtml='<div style="margin-bottom:16px"><div style="font-size:0.92rem;font-weight:bold;margin-bottom:8px;color:var(--text)">📅 สรุปรายเดือน</div>';
+  monthSumHtml+='<div class="summary-table-wrap"><table class="summary-table"><thead><tr><th class="name-th">ชื่อ-สกุล</th>';
+  var activeMonths=SCHOOL_MONTHS.filter(function(sm){ return datesInMonth(sm).length>0; });
+  activeMonths.forEach(function(sm){ monthSumHtml+='<th>'+sm.label+'</th>'; });
+  monthSumHtml+='</tr></thead><tbody>';
+  students.forEach(function(name){
+    monthSumHtml+='<tr><td class="name-col">'+name+'</td>';
+    activeMonths.forEach(function(sm){
+      var mDates=datesInMonth(sm);
+      var mStats=statsForDates(mDates);
+      var s=mStats[name];
+      monthSumHtml+='<td style="font-size:0.8rem;line-height:1.4">';
+      if(mDates.length===0){ monthSumHtml+='–'; }
+      else{
+        monthSumHtml+='<span style="color:var(--green-dark)">'+s.come+'</span>/<span style="color:#d4a800">'+s.leave+'</span>/<span style="color:var(--red-dark)">'+s.absent+'</span>';
+      }
+      monthSumHtml+='</td>';
+    });
+    monthSumHtml+='</tr>';
+  });
+  monthSumHtml+='</tbody></table></div>';
+  monthSumHtml+='<div style="font-size:0.78rem;color:var(--text-light);margin-top:6px;">มา / ลา / ขาด</div></div>';
+
+  // ตารางหลัก
+  var html=tabsHtml+monthSumHtml+'<hr class="divider">';
+  html+='<div style="font-size:0.92rem;font-weight:bold;margin-bottom:8px;color:var(--text)">📊 '+(currentStatMonth==='all'?'สรุปทั้งปีการศึกษา':SCHOOL_MONTHS[currentStatMonth].label)+' ('+totalDays+' วัน)</div>';
+  html+='<div class="summary-table-wrap"><table class="summary-table"><thead><tr>';
   html+='<th class="name-th">ชื่อ-สกุล</th><th>มา</th><th>ลา</th><th>ขาด</th><th>รวม</th><th>% มา</th></tr></thead><tbody>';
   students.forEach(function(name){
     var s=stats[name];
