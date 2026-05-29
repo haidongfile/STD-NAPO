@@ -117,6 +117,8 @@ body{font-family:'Itim',cursive;background:var(--bg);color:var(--text);min-heigh
 #loading-overlay{display:none;position:fixed;inset:0;background:rgba(255,240,248,0.75);backdrop-filter:blur(3px);z-index:900;align-items:center;justify-content:center;flex-direction:column;gap:12px}
 @keyframes spin{to{transform:rotate(360deg)}}
 .spinner{width:48px;height:48px;border:5px solid var(--pink);border-top-color:var(--purple);border-radius:50%;animation:spin 0.8s linear infinite}
+.btn-delete-all{background:var(--red-dark);color:#fff;border:none;border-radius:20px;padding:8px 20px;font-family:'Itim',cursive;font-size:0.9rem;cursor:pointer;opacity:0.85;transition:all 0.2s}
+.btn-delete-all:hover{opacity:1;transform:scale(1.03)}
 @media(max-width:600px){.header h1{font-size:1.2rem}.nav a{font-size:0.82rem;padding:6px 12px}.summary-table{font-size:0.78rem}}
 </style>
 </head>
@@ -176,6 +178,9 @@ body{font-family:'Itim',cursive;background:var(--bg);color:var(--text);min-heigh
   <div class="card">
     <div class="selector-row" id="grade-btns-summary"></div>
     <div class="selector-row" id="subject-btns-summary" style="display:none"></div>
+    <div id="summary-delete-row" style="display:none;margin-bottom:14px;">
+      <button class="btn-delete-all" id="btn-delete-all-tasks">🗑️ ลบชิ้นงานทั้งหมดในวิชานี้</button>
+    </div>
     <div id="summary-content"></div>
   </div>
 </div>
@@ -245,8 +250,19 @@ body{font-family:'Itim',cursive;background:var(--bg);color:var(--text);min-heigh
   </div>
 </div>
 
-<!-- MODAL: Confirm Delete -->
-<div class="modal-overlay" id="modal-delete">
+<!-- MODAL: Confirm Delete ALL -->
+<div class="modal-overlay" id="modal-delete-all">
+  <div class="modal">
+    <div class="modal-header"><h3>🗑️ ลบชิ้นงานทั้งหมด</h3></div>
+    <div class="modal-body"><p id="modal-delete-all-msg"></p></div>
+    <div class="modal-footer">
+      <div class="modal-btns">
+        <button class="btn-modal-cancel" id="btn-close-delete-all">ยกเลิก</button>
+        <button class="btn-modal-confirm" id="btn-do-delete-all">ลบทั้งหมดเลย</button>
+      </div>
+    </div>
+  </div>
+</div>
   <div class="modal">
     <div class="modal-header"><h3>🗑️ ยืนยันการลบ</h3></div>
     <div class="modal-body"><p id="modal-delete-msg"></p></div>
@@ -362,8 +378,10 @@ function initCal() {
   calDate.year = now.getFullYear()+543;
   calDate.month = now.getMonth();
   calDate.day = now.getDate();
-  document.getElementById('cal-text').textContent = calDate.day+' '+THAI_MONTHS[calDate.month]+' '+calDate.year;
   renderCal();
+  // ตั้งข้อความวันที่หลัง DOM พร้อม
+  var el = document.getElementById('cal-text');
+  if(el) el.textContent = calDate.day+' '+THAI_MONTHS[calDate.month]+' '+calDate.year;
 }
 function toggleCal() { document.getElementById('cal-popup').classList.toggle('open'); }
 function calNav(dir) {
@@ -463,7 +481,10 @@ function buildSubjectBtns(section) {
       btn.classList.add('active');
       state[section].subj=s;
       if(section==='submit') renderSubmitForm();
-      else renderSummary();
+      else {
+        document.getElementById('summary-delete-row').style.display='block';
+        renderSummary();
+      }
     });
     wrap.appendChild(btn);
   });
@@ -676,6 +697,26 @@ async function saveTaskInfo(){
 
 async function saveTaskEdit(){ await renderSummary(); showToast('✅ บันทึกสำเร็จ!'); closeModal('modal-task'); }
 
+async function confirmDeleteAll(){
+  var grade=state.summary.grade, subj=state.summary.subj;
+  if(!grade||!subj) return;
+  var tasks=await getTasks(grade,subj);
+  if(!tasks.length){showToast('ไม่มีชิ้นงานให้ลบค่ะ','#E06B6B');return;}
+  document.getElementById('modal-delete-all-msg').textContent=
+    'ต้องการลบชิ้นงานทั้งหมด '+tasks.length+' ชิ้น ในวิชา "'+subj+'" ของ ป.'+grade+' ใช่ไหม?\n\nข้อมูลทั้งหมดจะหายถาวร ไม่สามารถกู้คืนได้';
+  openModal('modal-delete-all');
+}
+
+async function doDeleteAll(){
+  var grade=state.summary.grade, subj=state.summary.subj;
+  showLoading(true);
+  await dbSet('tasks_'+grade+'_'+subj,[]);
+  showLoading(false);
+  closeModal('modal-delete-all');
+  await renderSummary();
+  showToast('🗑️ ลบชิ้นงานทั้งหมดสำเร็จ');
+}
+
 async function confirmDeleteTask(){
   deletingTaskId=editingTaskId;
   var tasks=await getTasks(state.summary.grade,state.summary.subj);
@@ -744,6 +785,7 @@ document.addEventListener('DOMContentLoaded', function(){
   buildGradeBtns('summary');
   buildGradeBtns('edit');
   initCal();
+  document.getElementById('cal-text').textContent = calDate.day+' '+THAI_MONTHS[calDate.month]+' '+calDate.year;
 
   document.getElementById('cal-display').addEventListener('click', toggleCal);
   document.getElementById('cal-prev').addEventListener('click', function(){calNav(-1);});
@@ -767,6 +809,10 @@ document.addEventListener('DOMContentLoaded', function(){
   document.getElementById('btn-confirm-delete').addEventListener('click',confirmDeleteTask);
   document.getElementById('btn-close-quick').addEventListener('click',function(){closeModal('modal-quick');});
   document.getElementById('btn-save-quick').addEventListener('click',saveQuickSubmit);
+  document.getElementById('btn-delete-all-tasks').addEventListener('click',confirmDeleteAll);
+  document.getElementById('btn-close-delete-all').addEventListener('click',function(){closeModal('modal-delete-all');});
+  document.getElementById('btn-do-delete-all').addEventListener('click',doDeleteAll);
+
   document.getElementById('btn-close-delete').addEventListener('click',function(){closeModal('modal-delete');});
   document.getElementById('btn-do-delete').addEventListener('click',doDeleteTask);
 
