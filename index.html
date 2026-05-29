@@ -577,7 +577,7 @@ async function renderSummary(){
 
   var html='<div class="summary-table-wrap"><table class="summary-table"><thead><tr><th>ชื่อ-สกุล</th>';
   tasks.forEach(function(t){html+='<th class="clickable-header" data-tid="'+t.id+'">📄 '+t.name+'</th>';});
-  html+='<th>รวม</th><th>%</th><th>คะแนนเก็บ<br><small>(เต็ม 80)</small></th></tr></thead><tbody>';
+  html+='<th>รวม</th><th>%</th><th>คะแนนเก็บ<br><small>(เต็ม 70)</small></th></tr></thead><tbody>';
   students.forEach(function(name){
     html+='<tr><td class="name-col">'+name+'</td>';
     var sub=0;
@@ -587,7 +587,7 @@ async function renderSummary(){
       else if(st==='not'){html+='<td><span class="icon-not" title="ยังไม่ส่ง"></span></td>';}
       else{html+='<td><span class="icon-none" title="ไม่ระบุ"></span></td>';}
     });
-    var total=tasks.length, pct=total?Math.round(sub/total*100):0, score=total?Math.round(sub/total*80):0;
+    var total=tasks.length, pct=total?Math.round(sub/total*100):0, score=total?Math.round(sub/total*70):0;
     html+='<td class="td-total">'+sub+'/'+total+'</td>';
     html+='<td class="td-pct" style="color:'+pctColor(pct)+'">'+pct+'%</td>';
     html+='<td class="td-score">'+score+'</td></tr>';
