@@ -744,19 +744,32 @@ async function saveSubmission(){
   var taskNote=document.getElementById('task-note').value.trim();
   var dateStr=calDate.day?(calDate.day+' '+THAI_MONTHS[calDate.month]+' '+calDate.year):'';
   showLoading(true);
-  var students=await getStudents(state.submit.grade); var statuses={};
-  students.forEach(function(name){
-    statuses[name]={status:curStatuses[name]||'not', note:curStatuses['__note_'+name]||''};
-  });
-  var tasks=await getTasks(state.submit.grade,state.submit.subj);
-  tasks.push({id:Date.now(),name:taskName,note:taskNote,date:dateStr,statuses:statuses});
-  await saveTasks(state.submit.grade,state.submit.subj,tasks);
-  showLoading(false);
-  document.getElementById('task-name').value=''; document.getElementById('task-note').value='';
-  var now=new Date(); calDate.year=now.getFullYear()+543; calDate.month=now.getMonth(); calDate.day=now.getDate();
-  makeCal(calDate,'cal-month-label','cal-grid',function(day,cd){document.getElementById('cal-text').textContent=day+' '+THAI_MONTHS[cd.month]+' '+cd.year;document.getElementById('cal-popup').classList.remove('open');});
-  document.getElementById('cal-text').textContent=calDate.day+' '+THAI_MONTHS[calDate.month]+' '+calDate.year;
-  curStatuses={}; await renderStudentList(); showToast('✅ บันทึกสำเร็จ!');
+  try{
+    var students=await getStudents(state.submit.grade);
+    var statuses={};
+    students.forEach(function(name){
+      statuses[name]={status:curStatuses[name]||'not', note:curStatuses['__note_'+name]||''};
+    });
+    var tasks=await getTasks(state.submit.grade,state.submit.subj);
+    tasks.push({id:Date.now(),name:taskName,note:taskNote,date:dateStr,statuses:statuses});
+    await saveTasks(state.submit.grade,state.submit.subj,tasks);
+    document.getElementById('task-name').value='';
+    document.getElementById('task-note').value='';
+    var now=new Date(); calDate.year=now.getFullYear()+543; calDate.month=now.getMonth(); calDate.day=now.getDate();
+    makeCal(calDate,'cal-month-label','cal-grid',function(day,cd){
+      document.getElementById('cal-text').textContent=day+' '+THAI_MONTHS[cd.month]+' '+cd.year;
+      document.getElementById('cal-popup').classList.remove('open');
+    });
+    document.getElementById('cal-text').textContent=calDate.day+' '+THAI_MONTHS[calDate.month]+' '+calDate.year;
+    curStatuses={};
+    await renderStudentList();
+    showToast('✅ บันทึกสำเร็จ!');
+  }catch(e){
+    console.error('saveSubmission error:', e);
+    showToast('❌ เกิดข้อผิดพลาด: '+e.message,'#E06B6B');
+  }finally{
+    showLoading(false);
+  }
 }
 
 // =====================
@@ -1007,11 +1020,17 @@ async function saveAttendance(){
   var grade='5', subj='general';
   var dateKey=makeDateKey(attCalDate);
   showLoading(true);
-  await saveAttDay(grade,subj,dateKey,attStatuses);
-  var dates=await getAttDates(grade,subj);
-  if(dates.indexOf(dateKey)<0){dates.push(dateKey);dates.sort();await saveAttDates(grade,subj,dates);}
-  showLoading(false);
-  showToast('✅ บันทึกการเข้าเรียนสำเร็จ!');
+  try{
+    await saveAttDay(grade,subj,dateKey,attStatuses);
+    var dates=await getAttDates(grade,subj);
+    if(dates.indexOf(dateKey)<0){dates.push(dateKey);dates.sort();await saveAttDates(grade,subj,dates);}
+    showToast('✅ บันทึกการเข้าเรียนสำเร็จ!');
+  }catch(e){
+    console.error('saveAttendance error:',e);
+    showToast('❌ บันทึกไม่สำเร็จ: '+e.message,'#E06B6B');
+  }finally{
+    showLoading(false);
+  }
 }
 
 // =====================
