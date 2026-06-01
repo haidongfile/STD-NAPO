@@ -157,7 +157,18 @@ body{font-family:'Itim',cursive;background:var(--bg);color:var(--text);min-heigh
 .ic-come{display:inline-block;width:14px;height:14px;border-radius:50%;background:var(--green-dark);vertical-align:middle}
 .ic-leave{display:inline-block;width:14px;height:14px;border-radius:50%;background:#d4a800;vertical-align:middle}
 .ic-absent{display:inline-block;width:14px;height:14px;border-radius:50%;background:var(--red-dark);vertical-align:middle}
-.ic-none{display:inline-block;width:14px;height:14px;border-radius:50%;background:#ddd;vertical-align:middle}
+/* QUIZ / SCORE */
+.quiz-toggle-row{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:10px 14px;background:var(--purple-light);border-radius:var(--radius-sm);border:2px solid var(--purple)}
+.quiz-toggle-row label{font-size:0.92rem;cursor:pointer;display:flex;align-items:center;gap:6px}
+.quiz-max-input{border:2px solid var(--purple);border-radius:8px;padding:6px 10px;font-family:'Itim',cursive;font-size:0.9rem;width:80px;background:#fff;outline:none;text-align:center}
+.score-input{border:2px solid var(--purple);border-radius:8px;padding:5px 8px;font-family:'Itim',cursive;font-size:0.88rem;width:64px;background:#fff;outline:none;text-align:center}
+.score-input:focus{border-color:var(--pink-dark)}
+.btn-not-tested{background:var(--red);color:var(--red-dark);border:2px solid var(--red-dark);border-radius:16px;padding:5px 10px;font-family:'Itim',cursive;font-size:0.8rem;cursor:pointer;opacity:0.4;transition:all 0.2s}
+.btn-not-tested.active{opacity:1;background:var(--red-dark);color:#fff;box-shadow:0 0 0 3px #E06B6B44}
+.td-quiz{background:#EDE8FF !important;font-weight:bold;color:#5a3e8a}
+.td-quiz-not{background:#EDE8FF !important}
+.th-quiz{background:linear-gradient(135deg,#C9B8FF,#9B7FE8) !important;color:#fff !important}
+.td-score-total{background:var(--yellow) !important;font-weight:bold}
 </style>
 </head>
 <body>
@@ -200,10 +211,22 @@ body{font-family:'Itim',cursive;background:var(--bg);color:var(--text);min-heigh
           </div>
         </div>
       </div>
-      <div class="bulk-btns">
+      <div class="quiz-toggle-row">
+        <label>
+          <input type="checkbox" id="is-quiz"> 🎯 สอบเก็บคะแนน
+        </label>
+        <span id="quiz-max-wrap" style="display:none;align-items:center;gap:6px">
+          คะแนนเต็ม <input type="number" class="quiz-max-input" id="quiz-max" min="1" max="70" placeholder="เช่น 10">
+        </span>
+      </div>
+      <div class="bulk-btns" id="bulk-btns-submit">
         <button class="btn-bulk all-submit" id="bulk-submit">✅ ส่งทั้งหมด</button>
         <button class="btn-bulk all-not" id="bulk-not">❌ ไม่ส่งทั้งหมด</button>
         <button class="btn-bulk all-clear" id="bulk-clear">🔄 ไม่เลือกทั้งหมด</button>
+      </div>
+      <div id="bulk-btns-quiz" class="bulk-btns" style="display:none">
+        <button class="btn-bulk all-clear" id="bulk-not-tested">❌ ยังไม่สอบทั้งหมด</button>
+        <button class="btn-bulk all-clear" id="bulk-clear-quiz">🔄 ล้างทั้งหมด</button>
       </div>
       <div id="student-list-submit"></div>
       <br>
@@ -346,6 +369,26 @@ body{font-family:'Itim',cursive;background:var(--bg);color:var(--text);min-heigh
       <div class="modal-btns">
         <button class="btn-modal-cancel" id="btn-close-delete-all">ยกเลิก</button>
         <button class="btn-modal-confirm" id="btn-do-delete-all">ลบทั้งหมดเลย</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Quick Quiz Submit -->
+<div class="modal-overlay" id="modal-quick-quiz">
+  <div class="modal">
+    <div class="modal-header"><h3>🎯 บันทึกคะแนนสอบ</h3></div>
+    <div class="modal-body">
+      <p id="modal-quick-quiz-info" style="white-space:pre-line;margin-bottom:12px;font-size:0.9rem;color:var(--text)"></p>
+      <div class="form-group">
+        <label>คะแนนที่ได้ <span style="font-size:0.82rem;color:var(--text-light)" id="modal-quick-quiz-max"></span></label>
+        <input type="number" id="modal-quick-quiz-score" class="quiz-max-input" style="width:100px" min="0" placeholder="คะแนน">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <div class="modal-btns">
+        <button class="btn-modal-cancel" id="btn-close-quick-quiz">ยกเลิก</button>
+        <button class="btn-modal-save" id="btn-save-quick-quiz">💾 บันทึก</button>
       </div>
     </div>
   </div>
@@ -818,6 +861,11 @@ document.addEventListener('DOMContentLoaded',function(){
   document.getElementById('bulk-not').addEventListener('click',function(){bulkSet('not');});
   document.getElementById('bulk-clear').addEventListener('click',function(){bulkSet('clear');});
   document.getElementById('btn-save-submission').addEventListener('click',saveSubmission);
+  document.getElementById('is-quiz').addEventListener('change',toggleQuizMode);
+  document.getElementById('bulk-not-tested').addEventListener('click',function(){bulkQuizSet('not_tested');});
+  document.getElementById('bulk-clear-quiz').addEventListener('click',function(){bulkQuizSet('clear');});
+  document.getElementById('btn-close-quick-quiz').addEventListener('click',function(){closeModal('modal-quick-quiz');});
+  document.getElementById('btn-save-quick-quiz').addEventListener('click',saveQuickQuiz);
   document.getElementById('btn-save-names').addEventListener('click',saveNames);
   document.getElementById('btn-toggle-edit-info').addEventListener('click',function(){document.getElementById('edit-info-form').classList.toggle('open');});
   document.getElementById('btn-save-task-info').addEventListener('click',saveTaskInfo);
@@ -852,6 +900,359 @@ document.addEventListener('DOMContentLoaded',function(){
   initAttCal();
   bindAttEvents();
 });
+
+// =====================
+// QUIZ STATE
+// =====================
+var quizScores={};  // name -> score or 'not_tested'
+
+function isQuizMode(){ return document.getElementById('is-quiz').checked; }
+
+function toggleQuizMode(){
+  var isQuiz=isQuizMode();
+  document.getElementById('quiz-max-wrap').style.display=isQuiz?'flex':'none';
+  document.getElementById('bulk-btns-submit').style.display=isQuiz?'none':'flex';
+  document.getElementById('bulk-btns-quiz').style.display=isQuiz?'flex':'none';
+  quizScores={};
+  renderStudentList();
+}
+
+function bulkQuizSet(type){
+  document.querySelectorAll('#student-list-submit .student-row').forEach(function(row){
+    var nm=row.querySelector('.student-name'); if(!nm) return;
+    var name=nm.textContent;
+    if(type==='not_tested'){
+      quizScores[name]='not_tested';
+      var si=row.querySelector('.score-input'); if(si){si.value='';si.disabled=true;si.style.opacity='0.4';}
+      var nb=row.querySelector('.btn-not-tested'); if(nb) nb.classList.add('active');
+    } else {
+      quizScores[name]=null;
+      var si=row.querySelector('.score-input'); if(si){si.value='';si.disabled=false;si.style.opacity='1';}
+      var nb=row.querySelector('.btn-not-tested'); if(nb) nb.classList.remove('active');
+    }
+  });
+}
+
+// =====================
+// SECTION 1: SUBMIT (override renderStudentList)
+// =====================
+async function renderStudentList(){
+  var students;
+  showLoading(true);
+  try{students=await getStudents(state.submit.grade);}
+  catch(e){students=DEFAULT_STUDENTS[state.submit.grade]||[];}
+  finally{showLoading(false);}
+  students=students||DEFAULT_STUDENTS[state.submit.grade]||[];
+  var wrap=document.getElementById('student-list-submit'); wrap.innerHTML='';
+  var isQuiz=isQuizMode();
+  students.forEach(function(name,idx){
+    var row=document.createElement('div'); row.className='student-row';
+    var top=document.createElement('div'); top.style.cssText='display:flex;align-items:center;gap:6px;width:100%';
+    var num=document.createElement('span'); num.className='status-num'; num.textContent=(idx+1)+'.';
+    var nm=document.createElement('span'); nm.className='student-name'; nm.textContent=name;
+    top.appendChild(num); top.appendChild(nm);
+    var btns=document.createElement('div'); btns.style.cssText='display:flex;gap:6px;width:100%;flex-wrap:wrap;align-items:center';
+
+    if(isQuiz){
+      // score input + not-tested button
+      var si=document.createElement('input'); si.type='number'; si.className='score-input'; si.placeholder='คะแนน'; si.min='0';
+      var notTested=quizScores[name]==='not_tested';
+      if(notTested){si.disabled=true;si.style.opacity='0.4';}
+      else if(quizScores[name]!=null) si.value=quizScores[name];
+      si.addEventListener('input',function(){ quizScores[name]=si.value===''?null:parseFloat(si.value); });
+      var nb=document.createElement('button'); nb.className='btn-not-tested'; nb.textContent='❌ ยังไม่สอบ';
+      if(notTested) nb.classList.add('active');
+      nb.addEventListener('click',function(){
+        var nt=!nb.classList.contains('active');
+        nb.classList.toggle('active',nt);
+        si.disabled=nt; si.style.opacity=nt?'0.4':'1';
+        quizScores[name]=nt?'not_tested':null;
+        if(nt) si.value='';
+      });
+      btns.appendChild(si); btns.appendChild(nb);
+    } else {
+      var bs=document.createElement('button'); bs.className='btn-submit-s'; bs.textContent='✅ ส่ง';
+      var bn=document.createElement('button'); bn.className='btn-notsubmit-s'; bn.textContent='❌ ไม่ส่ง';
+      var bc=document.createElement('button'); bc.className='btn-clear-s'; bc.textContent='–';
+      var ni=document.createElement('input'); ni.type='text'; ni.placeholder='หมายเหตุ...';
+      ni.style.cssText='flex:1;min-width:80px;border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-family:Itim,cursive;font-size:0.82rem;background:var(--pink-light);outline:none;color:var(--text)';
+      if(curStatuses['__note_'+name]) ni.value=curStatuses['__note_'+name];
+      ni.addEventListener('input',function(){ curStatuses['__note_'+name]=ni.value; });
+      bs.addEventListener('click',function(){ setStatus(name,bs,bn,'submit'); });
+      bn.addEventListener('click',function(){ setStatus(name,bs,bn,'not'); });
+      bc.addEventListener('click',function(){ setStatus(name,bs,bn,'clear'); });
+      if(curStatuses[name]==='submit') bs.classList.add('active');
+      else if(curStatuses[name]==='not') bn.classList.add('active');
+      btns.appendChild(bs); btns.appendChild(bn); btns.appendChild(bc); btns.appendChild(ni);
+    }
+    row.appendChild(top); row.appendChild(btns); wrap.appendChild(row);
+  });
+}
+
+async function saveSubmission(){
+  var taskName=document.getElementById('task-name').value.trim();
+  if(!taskName){showToast('⚠️ กรุณาใส่ชื่อชิ้นงาน!','#E06B6B');return;}
+  var isQuiz=isQuizMode();
+  var quizMax=isQuiz?parseFloat(document.getElementById('quiz-max').value):0;
+  if(isQuiz&&(!quizMax||quizMax<=0)){showToast('⚠️ กรุณาระบุคะแนนเต็ม!','#E06B6B');return;}
+  var taskNote=document.getElementById('task-note').value.trim();
+  var dateStr=calDate.day?(calDate.day+' '+THAI_MONTHS[calDate.month]+' '+calDate.year):'';
+  showLoading(true);
+  try{
+    var students=await getStudents(state.submit.grade);
+    var statuses={};
+    if(isQuiz){
+      students.forEach(function(name){
+        var sc=quizScores[name];
+        statuses[name]={status:sc==='not_tested'?'not_tested':'scored', score:sc==='not_tested'?null:sc, note:''};
+      });
+    } else {
+      students.forEach(function(name){
+        statuses[name]={status:curStatuses[name]||'not',note:curStatuses['__note_'+name]||''};
+      });
+    }
+    var tasks=await getTasks(state.submit.grade,state.submit.subj);
+    tasks.push({id:Date.now(),name:taskName,note:taskNote,date:dateStr,statuses:statuses,isQuiz:isQuiz,quizMax:isQuiz?quizMax:0});
+    await saveTasks(state.submit.grade,state.submit.subj,tasks);
+    document.getElementById('task-name').value=''; document.getElementById('task-note').value='';
+    document.getElementById('is-quiz').checked=false; document.getElementById('quiz-max').value='';
+    toggleQuizMode();
+    var now=new Date(); calDate.year=now.getFullYear()+543; calDate.month=now.getMonth(); calDate.day=now.getDate();
+    renderCal(); document.getElementById('cal-text').textContent=calDate.day+' '+THAI_MONTHS[calDate.month]+' '+calDate.year;
+    curStatuses={}; quizScores={}; await renderStudentList(); showToast('✅ บันทึกสำเร็จ!');
+  }catch(e){console.error('saveSubmission:',e);showToast('❌ บันทึกไม่สำเร็จ: '+e.message,'#E06B6B');}
+  finally{showLoading(false);}
+}
+
+// =====================
+// SECTION 2: SUMMARY (with quiz columns)
+// =====================
+async function renderSummary(){
+  var wrap=document.getElementById('summary-content'); wrap.innerHTML='<div class="empty-msg">⏳ กำลังโหลด...</div>';
+  var grade=state.summary.grade, subj=state.summary.subj;
+  var tasks,students;
+  showLoading(true);
+  try{tasks=await getTasks(grade,subj);students=await getStudents(grade);}
+  catch(e){tasks=[];students=DEFAULT_STUDENTS[grade]||[];}
+  finally{showLoading(false);}
+  if(!tasks.length){wrap.innerHTML='<div class="empty-msg">🌸 ยังไม่มีข้อมูลชิ้นงานในวิชานี้</div>';return;}
+
+  var quizTasks=tasks.filter(function(t){return t.isQuiz;});
+  var hwTasks=tasks.filter(function(t){return !t.isQuiz;});
+  var totalQuizMax=quizTasks.reduce(function(s,t){return s+(t.quizMax||0);},0);
+  var hwMax=70-totalQuizMax; // คะแนนชิ้นงานปกติ
+
+  // Build table header — quiz cols first (left), then hw cols
+  var html='<div style="font-size:0.8rem;color:var(--text-light);margin-bottom:8px;">🎯 สอบย่อย = '+totalQuizMax+' คะแนน | 📝 ชิ้นงาน = '+hwMax+' คะแนน | รวม = 70 คะแนน</div>';
+  html+='<div class="summary-table-wrap"><table class="summary-table"><thead><tr><th class="name-th">ชื่อ-สกุล</th>';
+  // quiz columns
+  quizTasks.forEach(function(t){
+    html+='<th class="th-quiz clickable-header" data-tid="'+t.id+'" title="คลิกแก้ไข">🎯 '+t.name+'<br><small style="font-weight:normal">(เต็ม '+t.quizMax+')</small></th>';
+  });
+  // hw columns
+  hwTasks.forEach(function(t){
+    html+='<th class="clickable-header" data-tid="'+t.id+'" title="คลิกแก้ไข">📄 '+t.name+'</th>';
+  });
+  html+='<th>ส่งงาน</th><th>%ส่ง</th><th>คะแนนชิ้นงาน<br><small>(เต็ม '+hwMax+')</small></th><th>คะแนนสอบย่อย<br><small>(เต็ม '+totalQuizMax+')</small></th><th>รวม<br><small>(เต็ม 70)</small></th></tr></thead><tbody>';
+
+  students.forEach(function(name){
+    html+='<tr><td class="name-col">'+name+'</td>';
+    var quizTotal=0;
+    // quiz cols
+    quizTasks.forEach(function(t){
+      var sv=t.statuses&&t.statuses[name];
+      var st=sv&&sv.status;
+      if(st==='not_tested'||(!sv)){
+        html+='<td class="td-quiz-not"><span class="icon-not" title="ยังไม่สอบ" data-tid="'+t.id+'" data-student="'+name+'"></span></td>';
+      } else {
+        var sc=sv.score!=null?sv.score:'?';
+        html+='<td class="td-quiz">'+sc+'</td>';
+        if(sv.score!=null) quizTotal+=parseFloat(sv.score)||0;
+      }
+    });
+    // hw cols
+    var sub=0;
+    hwTasks.forEach(function(t){
+      var sv=t.statuses&&t.statuses[name]; var st=getStatusVal(sv);
+      if(st==='submit'){html+='<td><span class="icon-submit" title="ส่งแล้ว"></span></td>';sub++;}
+      else if(st==='not'){html+='<td><span class="icon-not" title="ยังไม่ส่ง" data-tid="'+t.id+'" data-student="'+name+'"></span></td>';}
+      else{html+='<td><span class="icon-none"></span></td>';}
+    });
+    var hwTotal=hwTasks.length;
+    var pct=hwTotal>0?Math.round(sub/hwTotal*100):0;
+    var hwScore=hwTotal>0?Math.round(sub/hwTotal*hwMax):0;
+    var grandTotal=hwScore+quizTotal;
+    html+='<td class="td-total">'+sub+'/'+hwTotal+'</td>';
+    html+='<td class="td-pct" style="color:'+pctColor(pct)+'">'+pct+'%</td>';
+    html+='<td class="td-score">'+hwScore+'</td>';
+    html+='<td class="td-score" style="color:#5a3e8a">'+quizTotal+'</td>';
+    html+='<td class="td-score-total">'+grandTotal+'</td></tr>';
+  });
+  html+='</tbody></table></div>';
+
+  // Missing section
+  var missers=[];
+  students.forEach(function(name){
+    var mHw=hwTasks.filter(function(t){return getStatusVal(t.statuses&&t.statuses[name])==='not';});
+    var mQuiz=quizTasks.filter(function(t){var sv=t.statuses&&t.statuses[name];return !sv||(sv&&sv.status==='not_tested');});
+    if(mHw.length||mQuiz.length) missers.push({name:name,missingHw:mHw,missingQuiz:mQuiz});
+  });
+  missers.sort(function(a,b){return (b.missingHw.length+b.missingQuiz.length)-(a.missingHw.length+a.missingQuiz.length);});
+  html+='<hr class="divider"><div class="missing-list"><div style="font-size:1rem;margin-bottom:12px;">🚨 <strong>นักเรียนที่ยังไม่ส่ง/ยังไม่สอบ</strong></div>';
+  if(!missers.length){
+    html+='<div class="empty-msg">🎉 นักเรียนทุกคนส่งงานและสอบครบ!</div>';
+  } else {
+    missers.forEach(function(m,i){
+      var total=m.missingHw.length+m.missingQuiz.length;
+      html+='<div class="missing-item" data-mi="'+i+'"><div class="missing-header"><span class="missing-name">👤 '+m.name+'</span><span class="missing-count">ค้าง '+total+' รายการ</span></div>';
+      html+='<div class="missing-tasks" id="mt-'+i+'">';
+      m.missingHw.forEach(function(t){html+='<span class="task-chip" data-tid="'+t.id+'" data-student="'+m.name+'" data-isquiz="0">📄 '+t.name+'</span>';});
+      m.missingQuiz.forEach(function(t){html+='<span class="task-chip" data-tid="'+t.id+'" data-student="'+m.name+'" data-isquiz="1" style="border-color:var(--purple);color:#5a3e8a">🎯 '+t.name+'</span>';});
+      html+='</div></div>';
+    });
+  }
+  html+='</div>';
+  wrap.innerHTML=html;
+
+  // Bind events
+  wrap.querySelectorAll('.clickable-header[data-tid],.th-quiz[data-tid]').forEach(function(th){
+    th.addEventListener('click',function(){openTaskDetail(parseInt(th.dataset.tid));});
+  });
+  wrap.querySelectorAll('.missing-item[data-mi]').forEach(function(el){
+    el.addEventListener('click',function(){document.getElementById('mt-'+el.dataset.mi).classList.toggle('open');});
+  });
+  wrap.querySelectorAll('.task-chip').forEach(function(chip){
+    chip.addEventListener('click',function(e){
+      e.stopPropagation();
+      var tid=parseInt(chip.dataset.tid), stu=chip.dataset.student, isQuiz=chip.dataset.isquiz==='1';
+      if(isQuiz) openQuickQuiz(tid,stu);
+      else openQuickSubmit(tid,stu);
+    });
+  });
+  // click on red icon in quiz cell
+  wrap.querySelectorAll('.icon-not[data-tid]').forEach(function(ic){
+    ic.addEventListener('click',function(e){
+      e.stopPropagation();
+      if(ic.closest('.td-quiz-not')) openQuickQuiz(parseInt(ic.dataset.tid),ic.dataset.student);
+      else openQuickSubmit(parseInt(ic.dataset.tid),ic.dataset.student);
+    });
+  });
+}
+
+// openTaskDetail override — show score input for quiz tasks
+async function openTaskDetail(taskId){
+  var grade=state.summary.grade,subj=state.summary.subj;
+  var tasks,students;
+  showLoading(true);
+  try{tasks=await getTasks(grade,subj);students=await getStudents(grade);}
+  catch(e){tasks=[];students=DEFAULT_STUDENTS[grade]||[];}
+  finally{showLoading(false);}
+  var task=tasks.find(function(t){return t.id===taskId;}); if(!task) return;
+  editingTaskId=taskId;
+  document.getElementById('edit-info-form').classList.remove('open');
+  document.getElementById('modal-task-title').textContent=(task.isQuiz?'🎯 ':'📄 ')+task.name+(task.isQuiz?' (เต็ม '+task.quizMax+')':'');
+  renderTaskInfo(task);
+  document.getElementById('edit-task-name-input').value=task.name||'';
+  document.getElementById('edit-task-note-input').value=task.note||'';
+  var wrap=document.getElementById('modal-task-students'); wrap.innerHTML='';
+  students.forEach(function(name,idx){
+    var row=document.createElement('div'); row.className='student-row';
+    var top=document.createElement('div'); top.style.cssText='display:flex;align-items:center;gap:6px;width:100%';
+    var num=document.createElement('span'); num.className='status-num'; num.textContent=(idx+1)+'.';
+    var nm=document.createElement('span'); nm.className='student-name'; nm.textContent=name;
+    top.appendChild(num); top.appendChild(nm);
+    var btns=document.createElement('div'); btns.style.cssText='display:flex;gap:6px;width:100%;align-items:center;flex-wrap:wrap';
+
+    if(task.isQuiz){
+      var sv=task.statuses&&task.statuses[name];
+      var isNT=sv&&sv.status==='not_tested';
+      var si=document.createElement('input'); si.type='number'; si.className='score-input'; si.placeholder='คะแนน'; si.min='0'; si.max=task.quizMax;
+      if(!isNT&&sv&&sv.score!=null) si.value=sv.score;
+      if(isNT){si.disabled=true;si.style.opacity='0.4';}
+      si.addEventListener('input',function(){
+        if(!task.statuses)task.statuses={};
+        task.statuses[name]={status:'scored',score:si.value===''?null:parseFloat(si.value)};
+      });
+      var nb=document.createElement('button'); nb.className='btn-not-tested'; nb.textContent='❌ ยังไม่สอบ';
+      if(isNT) nb.classList.add('active');
+      nb.addEventListener('click',function(){
+        var nt=!nb.classList.contains('active');
+        nb.classList.toggle('active',nt); si.disabled=nt; si.style.opacity=nt?'0.4':'1';
+        if(!task.statuses)task.statuses={};
+        task.statuses[name]={status:nt?'not_tested':'scored',score:nt?null:(si.value===''?null:parseFloat(si.value))};
+        if(nt)si.value='';
+      });
+      btns.appendChild(si); btns.appendChild(nb);
+    } else {
+      var bs=document.createElement('button'); bs.className='btn-submit-s'; bs.textContent='✅ ส่ง';
+      var bn=document.createElement('button'); bn.className='btn-notsubmit-s'; bn.textContent='❌ ไม่ส่ง';
+      var bc=document.createElement('button'); bc.className='btn-clear-s'; bc.textContent='–';
+      var existNote=getNoteVal(task.statuses&&task.statuses[name]);
+      var ni=document.createElement('input'); ni.type='text'; ni.placeholder='หมายเหตุ...';
+      ni.style.cssText='flex:1;min-width:80px;border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-family:Itim,cursive;font-size:0.82rem;background:var(--pink-light);outline:none;color:var(--text)';
+      if(existNote)ni.value=existNote;
+      ni.addEventListener('input',function(){
+        if(!task.statuses)task.statuses={};
+        var curSt=getStatusVal(task.statuses[name]);
+        task.statuses[name]={status:curSt||null,note:ni.value};
+      });
+      var st=getStatusVal(task.statuses&&task.statuses[name]);
+      bs.classList.toggle('active',st==='submit'); bn.classList.toggle('active',st==='not');
+      bs.addEventListener('click',function(){setModalStatus(task,name,bs,bn,'submit',grade,subj);});
+      bn.addEventListener('click',function(){setModalStatus(task,name,bs,bn,'not',grade,subj);});
+      bc.addEventListener('click',function(){setModalStatus(task,name,bs,bn,'clear',grade,subj);});
+      btns.appendChild(bs); btns.appendChild(bn); btns.appendChild(bc); btns.appendChild(ni);
+    }
+    row.appendChild(top); row.appendChild(btns); wrap.appendChild(row);
+  });
+  openModal('modal-task');
+}
+
+// saveTaskEdit — save quiz scores too
+async function saveTaskEdit(){
+  var grade=state.summary.grade,subj=state.summary.subj;
+  showLoading(true);
+  try{
+    var tasks=await getTasks(grade,subj);
+    var task=tasks.find(function(t){return t.id===editingTaskId;});
+    if(task){
+      // statuses already updated in-place via event listeners
+      tasks[tasks.findIndex(function(t){return t.id===editingTaskId;})]=task;
+      await saveTasks(grade,subj,tasks);
+    }
+  }catch(e){console.error(e);}
+  finally{showLoading(false);}
+  await renderSummary(); showToast('✅ บันทึกสำเร็จ!'); closeModal('modal-task');
+}
+
+// Quick quiz modal
+var quickQuizData=null;
+async function openQuickQuiz(taskId,studentName){
+  var tasks=await getTasks(state.summary.grade,state.summary.subj);
+  var task=tasks.find(function(t){return t.id===taskId;}); if(!task) return;
+  quickQuizData={grade:state.summary.grade,subj:state.summary.subj,taskId:taskId,studentName:studentName};
+  document.getElementById('modal-quick-quiz-info').textContent='การสอบ: '+task.name+'\nนักเรียน: '+studentName;
+  document.getElementById('modal-quick-quiz-max').textContent='(เต็ม '+task.quizMax+' คะแนน)';
+  var sv=task.statuses&&task.statuses[studentName];
+  document.getElementById('modal-quick-quiz-score').value=(sv&&sv.score!=null)?sv.score:'';
+  openModal('modal-quick-quiz');
+}
+async function saveQuickQuiz(){
+  if(!quickQuizData) return;
+  showLoading(true);
+  try{
+    var tasks=await getTasks(quickQuizData.grade,quickQuizData.subj);
+    var task=tasks.find(function(t){return t.id===quickQuizData.taskId;});
+    if(task){
+      if(!task.statuses)task.statuses={};
+      var sc=document.getElementById('modal-quick-quiz-score').value;
+      task.statuses[quickQuizData.studentName]={status:'scored',score:sc===''?null:parseFloat(sc)};
+      await saveTasks(quickQuizData.grade,quickQuizData.subj,tasks);
+    }
+    closeModal('modal-quick-quiz'); await renderSummary(); showToast('✅ บันทึกคะแนนสำเร็จ!');
+  }catch(e){showToast('❌ บันทึกไม่สำเร็จ','#E06B6B');}
+  finally{showLoading(false);}
+}
 
 // =====================
 // ATTENDANCE
