@@ -450,6 +450,12 @@ try{
     });
     db=firebase.firestore();
     useFirebase=true;
+    // เปิด offline persistence — cache ลงเครื่อง อ่านครั้งต่อไปเร็วทันที
+    try{
+      db.enablePersistence({synchronizeTabs:true}).catch(function(err){
+        console.warn('persistence not enabled:',err.code);
+      });
+    }catch(e){}
   }
 }catch(e){ console.log('Firebase init failed:',e.message); }
 
@@ -941,6 +947,12 @@ document.addEventListener('DOMContentLoaded',function(){
 
   initAttCal();
   bindAttEvents();
+
+  // Prefetch ข้อมูลที่ใช้บ่อยแบบ background (ไม่บล็อก UI)
+  setTimeout(function(){
+    loadAttAll().catch(function(){});
+    getStudents(5).catch(function(){});
+  }, 300);
 });
 
 // =====================
@@ -1306,7 +1318,7 @@ function collectAllKeys(){
     keys.push('students_'+g);
     SUBJECTS.forEach(function(s){ keys.push('tasks_'+g+'_'+s); });
   });
-  keys.push('attdates5');
+  keys.push('att5_all');
   return keys;
 }
 
@@ -1320,15 +1332,10 @@ async function exportData(){
       var v=await dbGet(keys[i]);
       if(v!==null&&v!==undefined) backup.data[keys[i]]=v;
     }
-    // ดึงวันที่มาเรียนทั้งหมด แล้วดึงข้อมูลแต่ละวัน
-    var attDates=await dbGet('attdates5');
-    if(attDates&&attDates.length){
-      for(var j=0;j<attDates.length;j++){
-        var dk='att5_'+attDates[j];
-        var dv=await dbGet(dk);
-        if(dv!==null&&dv!==undefined) backup.data[dk]=dv;
-      }
-    }
+    // ดึงข้อมูลการมาเรียน (document เดียว) + เผื่อข้อมูลเก่ารายวัน
+    var attAll=await dbGet('att5_all');
+    if(!attAll){ attAll=await loadAttAll(); } // migrate ถ้ายังเป็นแบบเก่า
+    if(attAll&&Object.keys(attAll).length) backup.data['att5_all']=attAll;
   }catch(e){ console.error('export error:',e); showToast('❌ ส่งออกไม่สำเร็จ','#E06B6B'); showLoading(false); return; }
   showLoading(false);
 
@@ -1364,26 +1371,25 @@ async function doImport(){
   closeModal('modal-import');
   showLoading(true);
   try{
-    // ล้างของเดิม: หา key ทั้งหมดที่ระบบอาจมี แล้วเขียนทับด้วยค่าใหม่/ล้าง
-    // 1) ล้าง keys หลัก + วันมาเรียนเก่า
-    var oldAttDates=await dbGet('attdates5');
+    // ล้างของเดิม: keys หลัก + att5_all + ข้อมูลเก่ารายวัน (เผื่อมี)
     var clearKeys=collectAllKeys();
+    var oldAttDates=await dbGet('attdates5');
     if(oldAttDates&&oldAttDates.length) oldAttDates.forEach(function(d){ clearKeys.push('att5_'+d); });
+    clearKeys.push('attdates5');
 
-    // ล้างทั้งหมด (set เป็นค่าว่าง/ลบ cache)
     for(var i=0;i<clearKeys.length;i++){
       cache[clearKeys[i]]=undefined;
       if(useFirebase){ try{ await db.collection('data').doc(clearKeys[i]).delete(); }catch(e){} }
       else{ try{ localStorage.removeItem('hw_'+clearKeys[i]); }catch(e){} }
     }
 
-    // 2) เขียนข้อมูลใหม่จากไฟล์
+    // เขียนข้อมูลใหม่จากไฟล์
     var newData=pendingImport.data;
     var newKeys=Object.keys(newData);
     for(var j=0;j<newKeys.length;j++){
       await dbSet(newKeys[j], newData[newKeys[j]]);
     }
-    cache={}; // ล้าง cache ทั้งหมดให้โหลดใหม่
+    cache={}; attAllCache=null; // ล้าง cache ทั้งหมด
   }catch(e){ console.error('import error:',e); showToast('❌ นำเข้าไม่สำเร็จ: '+e.message,'#E06B6B'); showLoading(false); return; }
   showLoading(false);
   pendingImport=null;
@@ -1408,10 +1414,48 @@ var SCHOOL_MONTHS=[
   {y:2570,m:2,label:'มี.ค. 70',sem:2}
 ];
 
-async function getAttDay(dk){ return (await dbGet('att5_'+dk))||{}; }
-async function saveAttDay(dk,data){ await dbSet('att5_'+dk,data); }
-async function getAttDates(){ return (await dbGet('attdates5'))||[]; }
-async function saveAttDates(dates){ await dbSet('attdates5',dates); }
+// ==== ATTENDANCE DATA LAYER (single document att5_all) ====
+// โครงสร้าง: att5_all = { "2569-05-01": {ชื่อ:สถานะ}, "2569-05-02": {...}, ... }
+var attAllCache=null;
+
+async function loadAttAll(){
+  if(attAllCache!==null) return attAllCache;
+  var all=await dbGet('att5_all');
+  if(all&&typeof all==='object'){ attAllCache=all; return all; }
+  // migrate จากโครงสร้างเก่า (รายวัน) ถ้ามี
+  var oldDates=await dbGet('attdates5');
+  if(oldDates&&oldDates.length){
+    var migrated={};
+    for(var i=0;i<oldDates.length;i++){
+      var dv=await dbGet('att5_'+oldDates[i]);
+      if(dv&&Object.keys(dv).length) migrated[oldDates[i]]=dv;
+    }
+    if(Object.keys(migrated).length){
+      await dbSet('att5_all',migrated);
+      attAllCache=migrated;
+      console.log('migrated',Object.keys(migrated).length,'attendance days to single doc');
+      return migrated;
+    }
+  }
+  attAllCache={};
+  return attAllCache;
+}
+
+async function getAttDay(dk){
+  var all=await loadAttAll();
+  return all[dk]||{};
+}
+async function saveAttDay(dk,data){
+  var all=await loadAttAll();
+  all[dk]=data;
+  attAllCache=all;
+  await dbSet('att5_all',all);
+}
+async function getAttDates(){
+  var all=await loadAttAll();
+  return Object.keys(all).sort();
+}
+async function saveAttDates(dates){ /* ไม่ต้องทำแล้ว — derive จาก keys */ }
 
 function makeDateKey(cd){
   return (cd.year-543)+'-'+String(cd.month+1).padStart(2,'0')+'-'+String(cd.day).padStart(2,'0');
@@ -1506,8 +1550,6 @@ async function saveAttendance(){
   showLoading(true);
   try{
     await saveAttDay(dk,attStatuses);
-    var dates=await getAttDates();
-    if(dates.indexOf(dk)<0){ dates.push(dk); dates.sort(); await saveAttDates(dates); }
     showToast('✅ บันทึกการเข้าเรียนสำเร็จ!');
   }catch(e){ console.error('saveAttendance:',e); showToast('❌ บันทึกไม่สำเร็จ: '+e.message,'#E06B6B'); }
   finally{ showLoading(false); }
@@ -1520,9 +1562,9 @@ async function renderAttStat(){
   var students,allDates=[],dayData={};
   try{
     students=await getStudents(ATT_GRADE);
-    allDates=await getAttDates()||[];
-    for(var i=0;i<allDates.length;i++) dayData[allDates[i]]=await getAttDay(allDates[i]);
-  }catch(e){ students=DEFAULT_STUDENTS[ATT_GRADE]||[]; allDates=[]; }
+    dayData=await loadAttAll();
+    allDates=Object.keys(dayData).sort();
+  }catch(e){ students=DEFAULT_STUDENTS[ATT_GRADE]||[]; allDates=[]; dayData={}; }
   finally{ showLoading(false); }
 
   if(!allDates.length){ wrap.innerHTML='<div class="empty-msg">🌸 ยังไม่มีข้อมูลการมาเรียนของ ป.5</div>'; return; }
