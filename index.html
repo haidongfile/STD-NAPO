@@ -181,6 +181,7 @@ body{font-family:'Itim',cursive;background:var(--bg);color:var(--text);min-heigh
     <a href="#sec-att-record" style="background:rgba(168,216,255,0.8)">📋 บันทึกการมาเรียน ป.5</a>
     <a href="#sec-att-stat" style="background:rgba(168,216,255,0.8)">📈 สถิติการมาเรียน</a>
     <a href="#sec-edit">✏️ แก้ไขรายชื่อ</a>
+    <a href="#sec-backup">💾 สำรองข้อมูล</a>
   </nav>
 </div>
 
@@ -303,7 +304,37 @@ body{font-family:'Itim',cursive;background:var(--bg);color:var(--text);min-heigh
   </div>
 </div>
 
+<!-- BACKUP / RESTORE -->
+<div class="section" id="sec-backup">
+  <div class="section-title"><span>💾</span> สำรอง / กู้คืนข้อมูล</div>
+  <div class="card">
+    <p style="font-size:0.9rem;color:var(--text-light);margin-bottom:14px;">
+      📦 ดาวน์โหลดข้อมูลทั้งหมด (รายชื่อ ชิ้นงาน คะแนน การมาเรียน) เก็บเป็นไฟล์ .json<br>
+      หรือกู้คืนจากไฟล์ที่เคยสำรองไว้
+    </p>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;">
+      <button class="btn-save" id="btn-export-json" style="margin-top:0;background:linear-gradient(135deg,#A8E6C3,#4CAF85)">⬇️ ส่งออกข้อมูล (.json)</button>
+      <button class="btn-save" id="btn-import-json" style="margin-top:0;background:linear-gradient(135deg,#A8D8FF,#4A90D9)">⬆️ นำเข้าข้อมูล (.json)</button>
+      <input type="file" id="import-file-input" accept=".json,application/json" style="display:none">
+    </div>
+  </div>
+</div>
+
 <div class="footer">🌸 ระบบบันทึกการเรียน 🌸</div>
+
+<!-- MODAL: Confirm Import -->
+<div class="modal-overlay" id="modal-import">
+  <div class="modal">
+    <div class="modal-header"><h3>⚠️ ยืนยันการนำเข้าข้อมูล</h3></div>
+    <div class="modal-body"><p id="modal-import-msg" style="font-size:0.9rem;color:var(--text)"></p></div>
+    <div class="modal-footer">
+      <div class="modal-btns">
+        <button class="btn-modal-cancel" id="btn-close-import">ยกเลิก</button>
+        <button class="btn-modal-confirm" id="btn-do-import">ล้างของเดิม แล้วนำเข้า</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <div class="modal-overlay" id="modal-task">
   <div class="modal">
@@ -869,6 +900,15 @@ document.addEventListener('DOMContentLoaded',function(){
   document.getElementById('btn-close-quick-quiz').addEventListener('click',function(){closeModal('modal-quick-quiz');});
   document.getElementById('btn-save-quick-quiz').addEventListener('click',saveQuickQuiz);
   document.getElementById('btn-save-names').addEventListener('click',saveNames);
+
+  // Backup / Restore
+  document.getElementById('btn-export-json').addEventListener('click',exportData);
+  document.getElementById('btn-import-json').addEventListener('click',function(){ document.getElementById('import-file-input').click(); });
+  document.getElementById('import-file-input').addEventListener('change',function(e){
+    if(e.target.files&&e.target.files[0]){ handleImportFile(e.target.files[0]); e.target.value=''; }
+  });
+  document.getElementById('btn-close-import').addEventListener('click',function(){ closeModal('modal-import'); pendingImport=null; });
+  document.getElementById('btn-do-import').addEventListener('click',doImport);
   document.getElementById('btn-toggle-edit-info').addEventListener('click',function(){document.getElementById('edit-info-form').classList.toggle('open');});
   document.getElementById('btn-save-task-info').addEventListener('click',saveTaskInfo);
   document.getElementById('btn-close-task').addEventListener('click',function(){closeModal('modal-task');});
@@ -1254,6 +1294,101 @@ async function saveQuickQuiz(){
     closeModal('modal-quick-quiz'); await renderSummary(); showToast('✅ บันทึกคะแนนสำเร็จ!');
   }catch(e){showToast('❌ บันทึกไม่สำเร็จ','#E06B6B');}
   finally{showLoading(false);}
+}
+
+// =====================
+// BACKUP / RESTORE
+// =====================
+// รวบรวมทุก key ที่ระบบใช้
+function collectAllKeys(){
+  var keys=[];
+  [4,5,6].forEach(function(g){
+    keys.push('students_'+g);
+    SUBJECTS.forEach(function(s){ keys.push('tasks_'+g+'_'+s); });
+  });
+  keys.push('attdates5');
+  return keys;
+}
+
+async function exportData(){
+  showLoading(true);
+  var backup={ _meta:{ exportedAt:new Date().toISOString(), version:1 }, data:{} };
+  try{
+    // ดึง keys หลัก
+    var keys=collectAllKeys();
+    for(var i=0;i<keys.length;i++){
+      var v=await dbGet(keys[i]);
+      if(v!==null&&v!==undefined) backup.data[keys[i]]=v;
+    }
+    // ดึงวันที่มาเรียนทั้งหมด แล้วดึงข้อมูลแต่ละวัน
+    var attDates=await dbGet('attdates5');
+    if(attDates&&attDates.length){
+      for(var j=0;j<attDates.length;j++){
+        var dk='att5_'+attDates[j];
+        var dv=await dbGet(dk);
+        if(dv!==null&&dv!==undefined) backup.data[dk]=dv;
+      }
+    }
+  }catch(e){ console.error('export error:',e); showToast('❌ ส่งออกไม่สำเร็จ','#E06B6B'); showLoading(false); return; }
+  showLoading(false);
+
+  var blob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  var now=new Date();
+  var fname='backup_'+now.getFullYear()+String(now.getMonth()+1).padStart(2,'0')+String(now.getDate()).padStart(2,'0')+'_'+String(now.getHours()).padStart(2,'0')+String(now.getMinutes()).padStart(2,'0')+'.json';
+  a.href=url; a.download=fname; a.click();
+  URL.revokeObjectURL(url);
+  showToast('✅ ส่งออกข้อมูลสำเร็จ!');
+}
+
+var pendingImport=null;
+function handleImportFile(file){
+  var reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      var parsed=JSON.parse(e.target.result);
+      if(!parsed.data||typeof parsed.data!=='object'){ showToast('❌ ไฟล์ไม่ถูกต้อง','#E06B6B'); return; }
+      pendingImport=parsed;
+      var cnt=Object.keys(parsed.data).length;
+      var when=parsed._meta&&parsed._meta.exportedAt?(' (สำรองเมื่อ '+new Date(parsed._meta.exportedAt).toLocaleString('th-TH')+')'):'';
+      document.getElementById('modal-import-msg').textContent='พบข้อมูล '+cnt+' รายการ'+when+'\n\n⚠️ การนำเข้าจะลบข้อมูลปัจจุบันทั้งหมด แล้วแทนที่ด้วยข้อมูลจากไฟล์นี้ ดำเนินการต่อหรือไม่?';
+      openModal('modal-import');
+    }catch(err){ showToast('❌ อ่านไฟล์ไม่ได้: '+err.message,'#E06B6B'); }
+  };
+  reader.readAsText(file);
+}
+
+async function doImport(){
+  if(!pendingImport){ closeModal('modal-import'); return; }
+  closeModal('modal-import');
+  showLoading(true);
+  try{
+    // ล้างของเดิม: หา key ทั้งหมดที่ระบบอาจมี แล้วเขียนทับด้วยค่าใหม่/ล้าง
+    // 1) ล้าง keys หลัก + วันมาเรียนเก่า
+    var oldAttDates=await dbGet('attdates5');
+    var clearKeys=collectAllKeys();
+    if(oldAttDates&&oldAttDates.length) oldAttDates.forEach(function(d){ clearKeys.push('att5_'+d); });
+
+    // ล้างทั้งหมด (set เป็นค่าว่าง/ลบ cache)
+    for(var i=0;i<clearKeys.length;i++){
+      cache[clearKeys[i]]=undefined;
+      if(useFirebase){ try{ await db.collection('data').doc(clearKeys[i]).delete(); }catch(e){} }
+      else{ try{ localStorage.removeItem('hw_'+clearKeys[i]); }catch(e){} }
+    }
+
+    // 2) เขียนข้อมูลใหม่จากไฟล์
+    var newData=pendingImport.data;
+    var newKeys=Object.keys(newData);
+    for(var j=0;j<newKeys.length;j++){
+      await dbSet(newKeys[j], newData[newKeys[j]]);
+    }
+    cache={}; // ล้าง cache ทั้งหมดให้โหลดใหม่
+  }catch(e){ console.error('import error:',e); showToast('❌ นำเข้าไม่สำเร็จ: '+e.message,'#E06B6B'); showLoading(false); return; }
+  showLoading(false);
+  pendingImport=null;
+  showToast('✅ นำเข้าข้อมูลสำเร็จ! กำลังรีเฟรช...');
+  setTimeout(function(){ location.reload(); },1500);
 }
 
 // =====================
