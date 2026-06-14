@@ -450,27 +450,65 @@ try{
     });
     db=firebase.firestore();
     useFirebase=true;
-    // เปิด offline persistence — cache ลงเครื่อง อ่านครั้งต่อไปเร็วทันที
-    try{
-      db.enablePersistence({synchronizeTabs:true}).catch(function(err){
-        console.warn('persistence not enabled:',err.code);
-      });
-    }catch(e){}
   }
 }catch(e){ console.log('Firebase init failed:',e.message); }
 
 var cache={};
+var realtimeReady=false;
+var realtimeResolvers=[];
 function showLoading(v){ document.getElementById('loading-overlay').style.display=v?'flex':'none'; }
+
+// รอจน snapshot แรกพร้อม (resolve ทันทีถ้าพร้อมแล้ว)
+function waitRealtime(){
+  if(!useFirebase || realtimeReady) return Promise.resolve();
+  return new Promise(function(res){ realtimeResolvers.push(res); });
+}
+
+// subscribe ทั้ง collection 'data' ครั้งเดียว — ข้อมูลทุก doc เข้า cache และ sync real-time
+function startRealtime(){
+  if(!useFirebase) return;
+  db.collection('data').onSnapshot(function(snap){
+    snap.forEach(function(doc){
+      cache[doc.id]=doc.data().value;
+    });
+    // ลบ key ที่ถูกลบออกจาก server
+    snap.docChanges().forEach(function(ch){
+      if(ch.type==='removed') cache[ch.doc.id]=undefined;
+    });
+    // invalidate attendance cache เมื่อ doc att5_all เปลี่ยน
+    if(cache['att5_all']!==undefined) attAllCache=cache['att5_all']||null;
+    if(!realtimeReady){
+      realtimeReady=true;
+      realtimeResolvers.forEach(function(r){r();}); realtimeResolvers=[];
+    } else {
+      // มีการเปลี่ยนแปลงจากเครื่องอื่น → refresh หน้าที่กำลังดูอยู่
+      onRealtimeUpdate();
+    }
+  }, function(err){
+    console.warn('realtime error, fallback localStorage:',err.message);
+    useFirebase=false; realtimeReady=true;
+    realtimeResolvers.forEach(function(r){r();}); realtimeResolvers=[];
+  });
+}
+
+// เรียกเมื่อมีข้อมูลใหม่จากเครื่องอื่น
+var onRealtimeUpdate=function(){
+  // refresh summary ถ้ากำลังดูอยู่
+  if(state.summary.grade&&state.summary.subj){
+    var sc=document.getElementById('summary-content');
+    if(sc&&sc.innerHTML&&!sc.querySelector('.empty-msg')) renderSummary();
+  }
+};
 
 function withTimeout(p,ms){
   return Promise.race([p, new Promise(function(_,r){setTimeout(function(){r(new Error('timeout'));},ms);})]);
 }
 async function dbGet(key){
-  if(cache[key]!==undefined) return cache[key];
   if(useFirebase){
-    try{var s=await withTimeout(db.collection('data').doc(key).get(),8000);var v=s.exists?s.data().value:null;cache[key]=v;return v;}
-    catch(e){console.warn('dbGet fallback:',e.message);useFirebase=false;}
+    await waitRealtime();
+    return cache[key]!==undefined?cache[key]:null;
   }
+  if(cache[key]!==undefined) return cache[key];
   try{var r=localStorage.getItem('hw_'+key);var v=r?JSON.parse(r):null;cache[key]=v;return v;}catch(e){return null;}
 }
 async function dbSet(key,value){
@@ -682,7 +720,7 @@ async function renderSummary(){
   var grade=state.summary.grade,subj=state.summary.subj;
   var tasks,students;
   showLoading(true);
-  try{tasks=await getTasks(grade,subj);students=await getStudents(grade);}
+  try{var _r=await Promise.all([getTasks(grade,subj),getStudents(grade)]);tasks=_r[0];students=_r[1];}
   catch(e){tasks=[];students=DEFAULT_STUDENTS[grade]||[];}
   finally{showLoading(false);}
   if(!tasks.length){wrap.innerHTML='<div class="empty-msg">🌸 ยังไม่มีข้อมูลชิ้นงานในวิชานี้</div>';return;}
@@ -729,7 +767,7 @@ async function openTaskDetail(taskId){
   var grade=state.summary.grade,subj=state.summary.subj;
   var tasks,students;
   showLoading(true);
-  try{tasks=await getTasks(grade,subj);students=await getStudents(grade);}
+  try{var _r=await Promise.all([getTasks(grade,subj),getStudents(grade)]);tasks=_r[0];students=_r[1];}
   catch(e){tasks=[];students=DEFAULT_STUDENTS[grade]||[];}
   finally{showLoading(false);}
   var task=tasks.find(function(t){return t.id===taskId;});if(!task)return;
@@ -886,6 +924,7 @@ async function saveNames(){
 // =====================
 document.addEventListener('DOMContentLoaded',function(){
   buildGradeBtns('submit');buildGradeBtns('summary');buildGradeBtns('edit');
+  startRealtime();
   initCal();
 
   document.getElementById('cal-display').addEventListener('click',toggleCal);
@@ -947,12 +986,6 @@ document.addEventListener('DOMContentLoaded',function(){
 
   initAttCal();
   bindAttEvents();
-
-  // Prefetch ข้อมูลที่ใช้บ่อยแบบ background (ไม่บล็อก UI)
-  setTimeout(function(){
-    loadAttAll().catch(function(){});
-    getStudents(5).catch(function(){});
-  }, 300);
 });
 
 // =====================
@@ -1086,7 +1119,7 @@ async function renderSummary(){
   var grade=state.summary.grade, subj=state.summary.subj;
   var tasks,students;
   showLoading(true);
-  try{tasks=await getTasks(grade,subj);students=await getStudents(grade);}
+  try{var _r=await Promise.all([getTasks(grade,subj),getStudents(grade)]);tasks=_r[0];students=_r[1];}
   catch(e){tasks=[];students=DEFAULT_STUDENTS[grade]||[];}
   finally{showLoading(false);}
   if(!tasks.length){wrap.innerHTML='<div class="empty-msg">🌸 ยังไม่มีข้อมูลชิ้นงานในวิชานี้</div>';return;}
@@ -1198,7 +1231,7 @@ async function openTaskDetail(taskId){
   var grade=state.summary.grade,subj=state.summary.subj;
   var tasks,students;
   showLoading(true);
-  try{tasks=await getTasks(grade,subj);students=await getStudents(grade);}
+  try{var _r=await Promise.all([getTasks(grade,subj),getStudents(grade)]);tasks=_r[0];students=_r[1];}
   catch(e){tasks=[];students=DEFAULT_STUDENTS[grade]||[];}
   finally{showLoading(false);}
   var task=tasks.find(function(t){return t.id===taskId;}); if(!task) return;
